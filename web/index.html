@@ -8,7 +8,7 @@
 <body>
   <header><a class="brand" href="/">ITM<span>INSIDE THE MOMENT</span></a><span class="badge">合成比赛 · 片段体验</span></header>
   <main>
-    <div class="intro"><div><p class="eyebrow">A DIFFERENT WAY TO FEEL THE GAME</p><h1>站到他的那个位置。</h1><p>跟随比赛，选择一个瞬间，进入球员的视角。</p></div><div class="preferences"><label>观赛模式<select id="mode"><option value="casual">轻松看球</option><option value="analyst">查看数据</option></select></label><label>关注球员<select id="favorite"><option value="">所有球员</option></select></label></div></div>
+    <div class="intro"><div><p class="eyebrow">A DIFFERENT WAY TO FEEL THE GAME</p><h1>站到他的那个位置。</h1><p>跟随比赛，选择一个瞬间，进入球员的视角。</p></div><div class="preferences"><label>观赛模式<select id="mode"><option value="casual">轻松看球</option><option value="analyst">查看数据</option></select></label><label>球迷立场<select id="audience"><option value="neutral">中立观众</option><option value="home">主队球迷</option><option value="away">客队球迷</option></select></label></div></div>
     <p id="error" role="alert" hidden></p>
     <div class="layout">
       <section class="match-panel panel">
@@ -28,14 +28,19 @@
         <div class="controls"><button id="play">播放片段</button><button class="secondary" id="next">下一步</button><button class="secondary" id="reset">重置</button><label>速度<select id="speed"><option value="2200">1×</option><option value="1100">2×</option><option value="550">4×</option></select></label><span id="progress">0 / 13</span></div>
         <p class="scope">每次播放一个片段，结束自动暂停；点击“播放下一个片段”继续。统计仅覆盖已播放样例。</p>
         <div id="stats" class="stats"></div>
-        <div id="insight" class="insight">播放比赛片段，查看这一刻发生了什么。</div>
+        <section id="insight" class="insight" aria-label="场边洞察">
+          <div class="section-heading"><strong>场边洞察</strong><span id="insight-source">规则解读 · AI 接口待接入</span></div>
+          <h3 id="insight-title">这一步，为什么值得关注？</h3>
+          <p id="insight-text" aria-live="polite">播放比赛片段，洞察会随当前动作更新。</p>
+          <details id="insight-evidence" hidden><summary>查看分析依据</summary><p id="insight-measurement"></p><ul id="insight-facts"></ul><ul id="insight-events"></ul></details>
+        </section>
       </section>
       <section class="highlight panel">
         <p class="eyebrow">PLAYER POV</p><h2>进入这一刻</h2>
         <p id="moment-title">等待关键事件</p>
-        <div class="pov-options"><button id="striker" class="selected">射手视角</button><button id="goalkeeper" class="secondary">门将视角</button></div>
+        <p id="audience-hint" class="scope"></p><div class="pov-options"><button id="striker" class="selected">射手视角</button><button id="goalkeeper" class="secondary">门将视角</button></div>
         <div class="video-placeholder"><span class="viewfinder">⌖</span><strong id="video-title">从看台，到场上。</strong><p id="video-status" aria-live="polite">选择已发生的关键事件，准备你的专属片段。</p></div>
-        <label>片段解说语言<select id="language"><option value="zh">中文</option><option value="en">English</option></select></label>
+        <video id="highlight-video" controls playsinline hidden style="width:100%;border-radius:10px"></video><label>片段解说语言<select id="language"><option value="zh">中文</option><option value="en">English</option></select></label>
         <button class="primary" id="prepare" disabled>准备第一视角片段</button>
         <p class="scope">AI 视频服务待接入；当前可预览场景和解说。</p>
         <div id="result" hidden><p id="commentary"></p><details><summary>查看场景规划</summary><pre id="scene"></pre></details><button id="download" class="secondary">下载生成请求</button></div>

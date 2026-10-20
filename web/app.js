@@ -3,10 +3,73 @@ const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
 const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
 let pitchAnimation=null, lastPitchEvent=null;
+let requestController=null;
+let insightController=null, insightKey=null;
+const insightCache=new Map();
+async function updateLiveInsight(event){
+  const key=event?`${event.id}:${audience()}:${$("mode").value}`:null;
+  if(key===insightKey)return;
+  insightController?.abort();insightKey=key;
+  $("insight-evidence").hidden=true;
+  if(!event){
+    $("insight-title").textContent="这一步，为什么值得关注？";
+    $("insight-text").textContent="播放比赛片段，洞察会随当前动作更新。";
+    return;
+  }
+  $("insight-title").textContent=`${event.minute}′ · 正在解读当前动作`;
+  $("insight-text").textContent="结合当前事件与球场位置，整理分析依据…";
+  const controller=new AbortController();insightController=controller;
+  try{
+    let insight=insightCache.get(key);
+    if(!insight){
+      const response=await fetch("/api/insights",{method:"POST",signal:controller.signal,
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({event_id:event.id,audience:audience(),mode:$("mode").value})});
+      insight=await response.json();if(!response.ok)throw Error(insight.error||"无法读取洞察");
+      insightCache.set(key,insight);
+    }
+    if(key!==insightKey)return;
+    $("insight-title").textContent=insight.title;
+    $("insight-text").textContent=insight.text;
+    $("insight-source").textContent=insight.generator_label;
+    $("insight-measurement").textContent=insight.measurement_note;
+    const factNames={pass_distance_m:"传球距离（米）",forward_progress_m:"向前推进（米）",
+      carry_distance_m:"带球距离（米）",goal_distance_reduction_m:"距球门缩短（米）",
+      goal_distance_m:"距球门中心（米）",nearest_defender_m:"最近防守球员（米）",
+      goal_opening_angle_degrees:"两门柱夹角（度）"};
+    $("insight-facts").replaceChildren(...Object.entries(factNames).filter(([key])=>insight.facts[key]!=null).map(([key,label])=>{
+      const li=document.createElement("li");li.textContent=`${label}：${insight.facts[key]}`;return li;
+    }));
+    $("insight-events").replaceChildren(...insight.evidence.map(item=>{
+      const li=document.createElement("li");li.textContent=item.label;return li;
+    }));
+    $("insight-evidence").hidden=false;
+  }catch(error){
+    if(key===insightKey && error.name!=="AbortError"){
+      $("insight-title").textContent="洞察暂时不可用";
+      $("insight-text").textContent="可以继续观看，稍后切换观赛模式重试。";
+      insightKey=null;
+    }
+  }
+}
+const audience=()=>$("audience").value;
+function applyAudience(){
+  if(selected && audience()!=="neutral"){
+    const supported=data.match[audience()==="home"?"home_team":"away_team"].id;
+    pov=shotFor(selected).team.id===supported?"striker":"goalkeeper";
+  }
+  ["striker","goalkeeper"].forEach(id=>{
+    $(id).className=id===pov?"selected":"secondary";
+    $(id).disabled=audience()!=="neutral";
+  });
+  $("audience-hint").textContent=audience()==="neutral"
+    ?"中立观众：手动选择射手或门将视角，使用客观解说。"
+    :"优先体验支持球队的球员视角；片段结束自动准备，视频就绪后尝试播放。";
+}
 const seen = () => data.events.slice(0,cursor);
 const unlocked = clip => seen().some(e=>e.id===clip.trigger_event_id);
 const shotFor = clip => data.events.find(e=>e.id===clip.trigger_event_id);
-function clearResult(){epoch++;prepared=null;$("result").hidden=true;$("video-status").textContent="场景已选择，准备生成请求后可预览。";}
+function clearResult(){epoch++;requestController?.abort();busy=false;prepared=null;$("result").hidden=true;const video=$("highlight-video");video.pause();video.removeAttribute("src");video.load();video.hidden=true;$("video-status").textContent="场景已选择，准备生成请求后可预览。";}
 function updatePlayback(){
   const finished=data && cursor>=data.events.length;
   const boundary=data && cursor>0 && data.clips.some(c=>c.event_ids.at(-1)===data.events[cursor-1].id);
@@ -17,14 +80,19 @@ function stop(){clearInterval(timer);timer=null;updatePlayback();}
 function tick(){
   if(cursor>=data.events.length){stop();return;}
   const event=data.events[cursor++];
+  if(data.clips.some(c=>c.event_ids[0]===event.id)){selected=null;clearResult();}
   const clip=data.clips.find(c=>c.trigger_event_id===event.id);
-  if(clip){selected=clip;clearResult();}
+  if(clip){selected=clip;clearResult();applyAudience();}
   render();
-  if(cursor===data.events.length || data.clips.some(c=>c.event_ids.at(-1)===event.id))stop();
+  if(cursor===data.events.length || data.clips.some(c=>c.event_ids.at(-1)===event.id)){
+    stop();
+    if(audience()!=="neutral")prepareHighlight(true);
+  }
 }
 function start(){stop();if(!data || cursor>=data.events.length)return;timer=setInterval(tick,Number($("speed").value));updatePlayback();}
 function render(){
   updatePlayback();
+  applyAudience();
   const events=seen(), shots=events.filter(e=>e.type.name==="Shot"), goals=shots.filter(e=>e.shot.outcome.name==="Goal");
   const last=events.at(-1);
   $("score").textContent=`${goals.length} : 0`;
@@ -37,35 +105,19 @@ function render(){
     const text=document.createElement("span");text.textContent=label;item.append(number,text);return item;
   }));
   const available=data.clips.filter(unlocked);
-  const focus=$("favorite").value;
   $("moments").replaceChildren(...data.clips.map(clip=>{
     const shot=shotFor(clip), button=document.createElement("button");
     button.className="moment"+(selected?.id===clip.id?" active":"");
-    const relevant=!focus || clip.event_ids.some(id=>data.events.find(e=>e.id===id).player.id===Number(focus)) || shot.shot.freeze_frame.some(p=>p.player.id===Number(focus));
-    button.hidden=!relevant;button.disabled=!unlocked(clip);
+    button.disabled=!unlocked(clip);
     const title=document.createElement("span");title.textContent=`${shot.minute}′ · ${labels[shot.shot.outcome.name]}`;
     const sub=document.createElement("small");sub.textContent=unlocked(clip)?`${shot.player.name} → 进入视角`:"等待比赛推进";
-    button.append(title,sub);button.onclick=()=>{selected=clip;clearResult();render();};return button;
+    button.append(title,sub);button.onclick=()=>{stop();selected=clip;clearResult();render();if(audience()!=="neutral")prepareHighlight(true);};return button;
   }));
   $("recap").textContent=available.length?available.map(c=>{const e=shotFor(c);return `${e.minute} 分钟，${e.player.name}${({Goal:"射门得分","Off T":"射门偏出",Saved:"射门被扑出"})[e.shot.outcome.name]}。`;}).join(" ")+(cursor===data.events.length?" 三个样例片段已播放完毕。":""):"关键事件发生后，这里会自动整理回顾。";
   $("event-log").replaceChildren(...events.slice(-6).reverse().map(e=>{const p=document.createElement("div");p.textContent=`${e.minute}:${String(e.second).padStart(2,"0")} · ${e.player.name} · ${eventLabels[e.type.name]}`;return p;}));
   $("prepare").disabled=busy || !selected || !unlocked(selected);
   $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"射手":"门将"}视角`:"等待关键事件";
-  if(selected && unlocked(selected)){
-    const shot=shotFor(selected);
-    const metric=data.match.tracking?.physical_pitch_metres || [105,68];
-    const coords=data.match.coordinate_system;
-    const metresBetween=(a,b)=>Math.hypot((a[0]-b[0])*metric[0]/coords.length,(a[1]-b[1])*metric[1]/coords.width);
-    const opponents=shot.tracking
-      ?shot.tracking.start.filter(p=>p.team_id!==shot.team.id && data.match.players.find(entry=>entry.player.id===p.player_id)?.role!=="goalkeeper")
-      :shot.shot.freeze_frame.filter(p=>!p.teammate && p.position.name!=="Goalkeeper");
-    const distance=opponents.length?Math.min(...opponents.map(p=>metresBetween(p.location,shot.location))):null;
-    const goalDistance=metresBetween(shot.location,[coords.goal_line_x,(coords.goal_mouth_y[0]+coords.goal_mouth_y[1])/2]);
-    const resultText={Goal:"球进了，主队取得领先。",Saved:"射门被门将扑出，比分不变。","Off T":"射门偏出，比分不变。"}[shot.shot.outcome.name];
-    $("insight").textContent=$("mode").value==="analyst"
-      ?`距球门中心约 ${Math.round(goalDistance)} 米起脚${distance===null?"":`，最近防守球员约 ${distance.toFixed(1)} 米`}。${resultText}（距离按 ${metric[0]} × ${metric[1]} 米模拟球场估算）`
-      :`接球推进后，射手在附近有防守者的情况下起脚。${shot.shot.outcome.name==="Goal"?"这次射门让主队取得领先。":shot.shot.outcome.name==="Saved"?"门将挡住射门，比分没有改变。":"球偏出球门，这次进攻未能转化为进球。"}`;
-  }else $("insight").textContent="播放比赛片段，查看这一刻发生了什么。";
+  updateLiveInsight(last);
   renderPitch(last);
 }
 function pitchState(event){
@@ -178,24 +230,36 @@ $("next").onclick=()=>{stop();tick();};
 $("play").onclick=()=>timer?stop():start();
 $("reset").onclick=()=>{stop();cursor=0;selected=null;clearResult();$("video-status").textContent="选择已发生的关键事件，准备你的专属片段。";render();};
 $("speed").onchange=()=>{if(timer)start();};
-["mode","favorite"].forEach(id=>$(id).onchange=()=>render());
-$("language").onchange=clearResult;
+$("mode").onchange=()=>render();
+$("audience").onchange=()=>{clearResult();applyAudience();render();if(selected&&audience()!=="neutral")prepareHighlight(true);};
+$("language").onchange=()=>{clearResult();if(selected&&audience()!=="neutral")prepareHighlight(true);};
 ["striker","goalkeeper"].forEach(id=>$(id).onclick=()=>{pov=id;$(id).className="selected";$(id==="striker"?"goalkeeper":"striker").className="secondary";clearResult();render();});
-$("prepare").onclick=async()=>{
+async function prepareHighlight(automatic=false){
   if(!selected||busy)return;stop();busy=true;const version=++epoch;
+  applyAudience();
+  requestController=new AbortController();
   $("error").hidden=true;$("video-status").textContent="正在准备场景和生成请求…";render();
   try{
-    const response=await fetch("/api/highlights/prepare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({clip_id:selected.id,pov,language:$("language").value})});
+    const response=await fetch("/api/highlights/prepare",{method:"POST",signal:requestController.signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({clip_id:selected.id,pov,language:$("language").value,audience:audience()})});
     const body=await response.json();if(!response.ok)throw Error(body.error);
     if(version!==epoch)return;
     prepared=body.artifacts;
     $("video-status").textContent="场景已准备 · 等待视频服务接入（尚未生成视频）";
     $("commentary").textContent=prepared["commentary.json"].text;
     $("scene").textContent=JSON.stringify(prepared["scene.json"],null,2);$("result").hidden=false;
-  }catch(error){if(version===epoch){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，请重试。";}}
-  finally{busy=false;render();}
-};
+    const job=prepared["video_job.json"];
+    if(job.status==="succeeded" && job.media_url){
+      const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
+      $("video-status").textContent="第一视角视频已就绪。";
+      if(automatic){
+        try{await video.play();}catch{if(version===epoch)$("video-status").textContent="视频已就绪，点击播放开始观看。";}
+      }
+    }
+  }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，请重试。";}}
+  finally{if(version===epoch){busy=false;render();}}
+}
+$("prepare").onclick=()=>prepareHighlight(false);
 $("download").onclick=()=>{if(!prepared)return;const url=URL.createObjectURL(new Blob([JSON.stringify(prepared["video_request.json"],null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="video-request.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 fetch("/api/match").then(r=>{if(!r.ok)throw Error("无法读取比赛数据");return r.json();}).then(body=>{
-  data=body;data.match.players.forEach(p=>{const option=document.createElement("option");option.value=p.player.id;option.textContent=p.player.name;$("favorite").append(option);});render();
+  data=body;render();
 }).catch(error=>{$("error").textContent=error.message;$("error").hidden=false;["play","reset","prepare"].forEach(id=>$(id).disabled=true);});

@@ -66,24 +66,32 @@ python -m workflow.server
 Python 标准库服务仅监听本机，面向开发预览，不用于生产部署。
 
 基础版包含片段播放/暂停/重置/倍速、比分、事件位置示意、样例统计、
-关键事件时间轴、简短事件解释、轻松/数据模式、关注球员过滤及自动片段回顾。
+关键事件时间轴、简短事件解释、轻松/数据模式、球迷立场及自动片段回顾。
 第一视角面板可选择射手/门将、中英文解说，并真实调用已有准备工作流。
-当前三个场景的关键参与球员相同；阵容现为双方各 11 人，
-背景球员仅参与模拟跑位，不一定有关键事件，因此关注他们可能显示空片段列表。
+阵容现为双方各 11 人。“关注球员”已移除，所有观众都能看到完整片段列表。
+主队/客队球迷优先进入支持球队的球员视角，在片段结束后自动准备请求；
+中立观众手动选择射手或门将视角。解说根据进攻/防守一方与事件结果调整语气。
+切换立场或语言会清除旧结果并重新准备，重置不会触发自动准备。
 所有统计只计入已播放的样例事件；不提供全场控球率、xG 等无依据指标。
 
 ### API 交接
 
 - `GET /api/match`：返回 `match`、`events`、`clips`。
 - `POST /api/highlights/prepare`：
-  `{"clip_id":"saved","pov":"striker","language":"zh"}`。
+  `{"clip_id":"saved","pov":"striker","language":"zh","audience":"home"}`。
   返回 `job_id` 和 `artifacts`；每次结果保存在 `outputs/<job_id>/`。
 - partner 可实现 `VideoProvider.submit(request)`，在服务调用 `run` 时注入。
   `request` 提供 `prompt`、`negative_prompt`、`duration_seconds`、
   `pov`、`outcome`、`source_event_ids`，供应商不支持的参数应在适配器中转换。
+- `audience` 接受 `neutral`（默认）、`home`、`away`。
+  有球队偏好时，后端按射门球队归属决定 `pov`，不直接相信前端传入的视角。
+  `scene.viewer`、`video_request.viewer` 提供 `audience`、`pov`、`emotion`、`autoplay`；
+  `commentary.json` 提供相应语气的解说文本与情绪标签，可供后续 TTS 使用。
 - 当前 prepare 是同步 dry-run。接真实视频服务时应新增独立提交/轮询接口，
   包括 `queued / running / succeeded / failed` 状态与视频 URL；
-  前端目前没有伪造播放器，也尚未实现真实生成任务的轮询与播放。
+  前端已经支持 `video_job.json` 返回 `status: succeeded` 和 `media_url` 时展示播放器，
+  有立场的自动请求会尝试播放；浏览器禁止自动播放时提示手动点击。
+  当前没有视频资源，不能验证真实成片播放；尚未实现异步任务轮询。
 - API Key 放在后端环境变量中，不写进浏览器代码或提交到 Git。
 
 功能范围参考了 [Virtual Studio Crew](https://github.com/timmytrace/pl-insights-engine)

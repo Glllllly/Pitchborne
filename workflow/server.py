@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 from workflow.pipeline import ROOT, read, run
+from workflow.insights import build_insight
 
 DATA = ROOT / "data" / "synthetic"
 WEB = ROOT / "web"
@@ -40,7 +41,7 @@ class Handler(BaseHTTPRequestHandler):
         self.respond(404, {"error": "Not found"})
 
     def do_POST(self):
-        if self.path != "/api/highlights/prepare":
+        if self.path not in ("/api/highlights/prepare", "/api/insights"):
             return self.respond(404, {"error": "Not found"})
         # Local-only JSON endpoint; reject cross-origin browser requests.
         if self.headers.get("Origin") not in (None, "http://" + self.headers.get("Host", "")):
@@ -52,12 +53,19 @@ class Handler(BaseHTTPRequestHandler):
             request = json.loads(self.rfile.read(size))
             if not isinstance(request, dict):
                 raise ValueError("Expected JSON object")
+            if self.path == "/api/insights":
+                return self.respond(200, build_insight(
+                    read(DATA / "match.json"), read(DATA / "events.json"),
+                    request.get("event_id"), request.get("audience", "neutral"),
+                    request.get("mode", "casual"),
+                ))
             if request.get("clip_id") not in {item["id"] for item in read(DATA / "clips.json")}:
                 raise ValueError("Unknown clip")
             job_id = str(uuid4())
             artifacts = run(
                 request["clip_id"], request.get("pov", "striker"),
                 request.get("language", "zh"), DATA, ROOT / "outputs" / job_id,
+                audience=request.get("audience", "neutral"),
             )
             self.respond(200, {"job_id": job_id, "artifacts": artifacts})
         except (ValueError, KeyError, StopIteration) as error:

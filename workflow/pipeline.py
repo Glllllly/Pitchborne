@@ -141,7 +141,23 @@ def compile_video_request(scene):
     }
 
 
-def generate_commentary(context, scene, language):
+def audience_profile(context, audience, pov):
+    if audience not in ("neutral", "home", "away"):
+        raise ValueError("Unsupported audience")
+    if audience == "neutral":
+        return {"audience": audience, "pov": pov, "emotion": "neutral", "autoplay": False}
+    team_id = context["match"][f"{audience}_team"]["id"]
+    attacking = context["shot"]["team"]["id"] == team_id
+    outcome = context["shot"]["shot"]["outcome"]["name"]
+    emotion = ("joyful" if attacking else "disappointed") if outcome == "Goal" else (
+        "disappointed" if attacking else "relieved"
+    )
+    return {"audience": audience, "supported_team_id": team_id,
+            "pov": "striker" if attacking else "goalkeeper",
+            "emotion": emotion, "autoplay": True}
+
+
+def generate_commentary(context, scene, language, profile=None):
     """Template baseline; replace with grounded model generation behind this stage."""
     shot = context["shot"]
     outcome = scene["facts"]["outcome"]
@@ -151,6 +167,24 @@ def generate_commentary(context, scene, language):
         if language == "zh" else
         f"{name} receives the pass, carries forward and shoots with the right foot. {RESULTS[outcome][2]}"
     )
+    profile = profile or audience_profile(context, "neutral", scene["pov"])
+    if profile["audience"] != "neutral":
+        attacking = profile["pov"] == "striker"
+        phrases = {
+            ("Goal", True): ("进了！我们的射手把球送进球门，一起庆祝这一刻！",
+                             "It's in! Our striker finds the net. What a moment to celebrate!"),
+            ("Goal", False): ("唉，还是丢球了。对方的射门越过了我们的门将。",
+                              "A painful moment. Their shot beats our goalkeeper."),
+            ("Saved", True): ("可惜！我们的射门被扑出了，这次没能破门。",
+                              "So close! Our shot is saved. No goal this time."),
+            ("Saved", False): ("扑得好！我们的门将挡住了射门，比分守住了！",
+                               "What a save! Our goalkeeper stops the shot and keeps the score unchanged!"),
+            ("Off T", True): ("可惜，射偏了。我们的这次进攻没能换来进球。",
+                              "Oh, wide! Our attack ends without a goal."),
+            ("Off T", False): ("松了一口气，对方射偏了，比分没有改变。",
+                               "A sigh of relief. Their shot goes wide; the score stays unchanged."),
+        }
+        text = phrases[(outcome, attacking)][0 if language == "zh" else 1]
     return {
         "language": language,
         "generator": "deterministic-template-v1",
@@ -159,6 +193,8 @@ def generate_commentary(context, scene, language):
         "source_event_ids": scene["source_event_ids"],
         "placement": "after_video",
         "audio_status": "not_generated",
+        "audience": profile["audience"],
+        "emotion": profile["emotion"],
     }
 
 
@@ -180,13 +216,17 @@ def validate_outputs(context, scene, request, commentary):
     }
 
 
-def run(clip_id, pov, language, data_dir, output_dir, provider=None):
+def run(clip_id, pov, language, data_dir, output_dir, provider=None, audience="neutral"):
     if pov not in ("striker", "goalkeeper") or language not in ("zh", "en"):
         raise ValueError("Unsupported POV or language")
     context = load_context(data_dir, clip_id)
+    profile = audience_profile(context, audience, pov)
+    pov = profile["pov"]
     scene = plan_scene(context, pov)
+    scene["viewer"] = profile
     request = compile_video_request(scene)
-    commentary = generate_commentary(context, scene, language)
+    request["viewer"] = profile
+    commentary = generate_commentary(context, scene, language, profile)
     validation = validate_outputs(context, scene, request, commentary)
     # Validate before any future paid provider submission.
     job = (provider or DryRunVideoProvider()).submit(request)
@@ -198,7 +238,7 @@ def run(clip_id, pov, language, data_dir, output_dir, provider=None):
         "validation.json": validation,
         "video_job.json": job,
         "run.json": {
-            "clip_id": clip_id, "pov": pov, "language": language,
+            "clip_id": clip_id, "pov": pov, "language": language, "viewer": profile,
             "status": "prepared" if job["status"] == "not_submitted" else "submitted",
             "stages": ["load", "plan", "compile_prompt", "commentary", "validate", "video_submit"],
         },
@@ -215,12 +255,13 @@ def main():
     parser.add_argument("--clip", default="saved")
     parser.add_argument("--pov", choices=["striker", "goalkeeper"], default="striker")
     parser.add_argument("--language", choices=["zh", "en"], default="zh")
+    parser.add_argument("--audience", choices=["neutral", "home", "away"], default="neutral")
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data" / "synthetic")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    output = args.output or ROOT / "outputs" / f"{args.clip}-{args.pov}-{args.language}"
+    output = args.output or ROOT / "outputs" / f"{args.clip}-{args.pov}-{args.language}-{args.audience}"
     try:
-        run(args.clip, args.pov, args.language, args.data_dir, output)
+        run(args.clip, args.pov, args.language, args.data_dir, output, audience=args.audience)
     except (ValueError, KeyError, StopIteration, OSError) as error:
         parser.exit(1, f"Workflow failed: {type(error).__name__}: {error}\n")
     print(f"Prepared workflow artifacts: {output}\nDry run: no video or audio generated.")
