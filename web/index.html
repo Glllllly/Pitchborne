@@ -15,14 +15,14 @@
         <div class="scoreboard"><div><small>主队</small><strong>Harbor Comets</strong></div><div class="score"><b id="score">0 : 0</b><span id="clock">准备开场</span></div><div class="away"><small>客队</small><strong>Mountain Lanterns</strong></div></div>
         <div class="pitch-legend"><span><i class="home-dot"></i>绿：主队 / 进攻方</span><span><i class="away-dot"></i>橙红：客队 / 防守方</span><span>⚽ 黑白：足球</span><span>亮圈：当前参与者 · 暗色：其他球员</span><span>进攻方向 →</span></div>
         <div class="pitch-wrap">
-          <svg id="pitch" viewBox="78 15 48 50" role="img" aria-label="进攻区域放大示意，绿色为主队，橙红色为客队，黑白图标为足球">
+          <svg id="pitch" viewBox="-4 -4 130 88" role="img" aria-label="双方各十一人的合成比赛移动示意，绿色为主队，橙红色为客队">
             <defs><marker id="route-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#f0ffc0"/></marker><pattern id="grass" width="20" height="80" patternUnits="userSpaceOnUse"><rect width="10" height="80" fill="#ffffff" opacity=".025"/></pattern></defs>
             <rect width="120" height="80" fill="#163d32"/><rect width="120" height="80" fill="url(#grass)"/>
             <g fill="none" stroke="#94b8a0" stroke-width=".35" opacity=".6"><rect x="0" y="0" width="120" height="80"/><path d="M60 0V80"/><circle cx="60" cy="40" r="9"/><path d="M0 18H20V62H0M120 18H100V62H120M0 30H8V50H0M120 30H112V50H120"/></g>
-            <path d="M120 36H123V44H120Z" fill="none" stroke="#e9efdf" stroke-width=".4"/>
+            <path d="M0 36H-3V44H0Z M120 36H123V44H120Z" fill="none" stroke="#e9efdf" stroke-width=".4"/>
             <g id="markers"></g>
           </svg>
-          <span class="pitch-label">局部球员示意 · 无实时位置者参考射门站位 · 非连续追踪</span>
+          <span class="pitch-label">11 对 11 · 合成移动轨迹 · 非真实比赛追踪</span>
         </div>
         <p id="action-caption" class="action-caption" aria-live="polite">点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。</p>
         <div class="controls"><button id="play">播放片段</button><button class="secondary" id="next">下一步</button><button class="secondary" id="reset">重置</button><label>速度<select id="speed"><option value="2200">1×</option><option value="1100">2×</option><option value="550">4×</option></select></label><span id="progress">0 / 13</span></div>

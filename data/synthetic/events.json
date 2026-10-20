@@ -52,7 +52,376 @@
     },
     "related_events": [
       "ec12f12d-4aea-5e27-96ae-7c331e3d52a3"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 0,
+      "duration_seconds": 2,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.2,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            35.5,
+            11.2
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            32.5,
+            27.8
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            31.5,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            35.5,
+            71.2
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            55.5,
+            38.8
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            32.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            67.5,
+            59.2
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            88.5,
+            10.8
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            103.0,
+            36.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            86.5,
+            69.2
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.2,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            96.3,
+            71.2
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            104.0,
+            32.8
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            99.7,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            96.3,
+            11.2
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            89.66,
+            38.8
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            81.94,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            80.94,
+            23.2
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            73.82,
+            66.8
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            67.54,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            71.82,
+            13.2
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.6364,
+            28.3455
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.0909,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.6364,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.2727,
+            32.4545
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.5455,
+            58.6545
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.6364,
+            11.3455
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            105.0,
+            35.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.5455,
+            68.6545
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.5636,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            105.1364,
+            33.3455
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.2909,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            90.7964,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.5309,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            82.9855,
+            22.6545
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            74.9564,
+            67.3455
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.1309,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            73.8655,
+            12.6545
+          ]
+        }
+      ],
+      "ball_start": [
+        91,
+        32
+      ],
+      "ball_end": [
+        105,
+        35
+      ]
+    }
   },
   {
     "id": "ec12f12d-4aea-5e27-96ae-7c331e3d52a3",
@@ -89,7 +458,376 @@
     "related_events": [
       "2248b534-5334-5391-8397-23fbfad18546",
       "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 2,
+      "duration_seconds": 0.4,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.6364,
+            28.3455
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.0909,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.6364,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.2727,
+            32.4545
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.5455,
+            58.6545
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.6364,
+            11.3455
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            105.0,
+            35.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.5455,
+            68.6545
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.5636,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            105.1364,
+            33.3455
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.2909,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            90.7964,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.5309,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            82.9855,
+            22.6545
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            74.9564,
+            67.3455
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.1309,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            73.8655,
+            12.6545
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.8636,
+            28.4545
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.4091,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.8636,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.7273,
+            32.5455
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.9545,
+            58.5455
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.8636,
+            11.4545
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            105,
+            35
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.9545,
+            68.5455
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.6364,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            105.3636,
+            33.4545
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.6091,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            91.0236,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.8491,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            83.3945,
+            22.5455
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            75.1836,
+            67.4545
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.4491,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            74.2745,
+            12.5455
+          ]
+        }
+      ],
+      "ball_start": [
+        105,
+        35
+      ],
+      "ball_end": [
+        105,
+        35
+      ]
+    }
   },
   {
     "id": "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d",
@@ -132,7 +870,376 @@
     "related_events": [
       "ec12f12d-4aea-5e27-96ae-7c331e3d52a3",
       "67bfb394-8041-5b54-a515-9245db7c6073"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 2.4,
+      "duration_seconds": 2,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.8636,
+            28.4545
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.4091,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.8636,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.7273,
+            32.5455
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.9545,
+            58.5455
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.8636,
+            11.4545
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            105,
+            35
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.9545,
+            68.5455
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.6364,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            105.3636,
+            33.4545
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.6091,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            91.0236,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.8491,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            83.3945,
+            22.5455
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            75.1836,
+            67.4545
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.4491,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            74.2745,
+            12.5455
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96.0,
+            33.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            108,
+            35
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.0,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.5,
+            34.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        105,
+        35
+      ],
+      "ball_end": [
+        108,
+        35
+      ]
+    }
   },
   {
     "id": "67bfb394-8041-5b54-a515-9245db7c6073",
@@ -233,7 +1340,376 @@
     },
     "related_events": [
       "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 4.4,
+      "duration_seconds": 0.8,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96.0,
+            33.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            108,
+            35
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.0,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.5,
+            34.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96,
+            33
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            108,
+            35
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.0,
+            38.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.5,
+            34.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        108,
+        35
+      ],
+      "ball_end": [
+        120,
+        43
+      ]
+    }
   },
   {
     "id": "10bb54f6-dc3c-5bef-9da0-60078026892b",
@@ -288,7 +1764,376 @@
     },
     "related_events": [
       "1c037456-894f-570a-b21f-2f5b124c8bba"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 0,
+      "duration_seconds": 2,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.2,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            35.5,
+            11.2
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            32.5,
+            27.8
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            31.5,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            35.5,
+            71.2
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            55.5,
+            38.8
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            32.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            67.5,
+            59.2
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            88.5,
+            10.8
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            98.0,
+            48.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            86.5,
+            69.2
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.2,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            96.3,
+            71.2
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            99.0,
+            44.8
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            99.7,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            96.3,
+            11.2
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            89.66,
+            38.8
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            81.94,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            80.94,
+            23.2
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            73.82,
+            66.8
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            67.54,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            71.82,
+            13.2
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.6364,
+            28.3455
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.0909,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.6364,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.2727,
+            32.4545
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.5455,
+            58.6545
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.6364,
+            11.3455
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            100.0,
+            47.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.5455,
+            68.6545
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.5636,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            100.1364,
+            45.3455
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.2909,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            90.7964,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.5309,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            82.9855,
+            22.6545
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            74.9564,
+            67.3455
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.1309,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            73.8655,
+            12.6545
+          ]
+        }
+      ],
+      "ball_start": [
+        91,
+        32
+      ],
+      "ball_end": [
+        100,
+        47
+      ]
+    }
   },
   {
     "id": "1c037456-894f-570a-b21f-2f5b124c8bba",
@@ -325,7 +2170,376 @@
     "related_events": [
       "10bb54f6-dc3c-5bef-9da0-60078026892b",
       "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 2,
+      "duration_seconds": 0.4,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.6364,
+            28.3455
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.0909,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.6364,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.2727,
+            32.4545
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.5455,
+            58.6545
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.6364,
+            11.3455
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            100.0,
+            47.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.5455,
+            68.6545
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.5636,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            100.1364,
+            45.3455
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.2909,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            90.7964,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.5309,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            82.9855,
+            22.6545
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            74.9564,
+            67.3455
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.1309,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            73.8655,
+            12.6545
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.8636,
+            28.4545
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.4091,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.8636,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.7273,
+            32.5455
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.9545,
+            58.5455
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.8636,
+            11.4545
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            100,
+            47
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.9545,
+            68.5455
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.6364,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            100.3636,
+            45.4545
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.6091,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            91.0236,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.8491,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            83.3945,
+            22.5455
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            75.1836,
+            67.4545
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.4491,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            74.2745,
+            12.5455
+          ]
+        }
+      ],
+      "ball_start": [
+        100,
+        47
+      ],
+      "ball_end": [
+        100,
+        47
+      ]
+    }
   },
   {
     "id": "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00",
@@ -368,7 +2582,376 @@
     "related_events": [
       "1c037456-894f-570a-b21f-2f5b124c8bba",
       "fade162e-27d0-5982-8e34-8dda7325593e"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 2.4,
+      "duration_seconds": 2,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.8636,
+            28.4545
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.4091,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.8636,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.7273,
+            32.5455
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.9545,
+            58.5455
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.8636,
+            11.4545
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            100,
+            47
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.9545,
+            68.5455
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            116.6364,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            100.3636,
+            45.4545
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.6091,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            91.0236,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.8491,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            83.3945,
+            22.5455
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            75.1836,
+            67.4545
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.4491,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            74.2745,
+            12.5455
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96.0,
+            33.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            103,
+            47
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.0,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            101.5,
+            46.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        100,
+        47
+      ],
+      "ball_end": [
+        103,
+        47
+      ]
+    }
   },
   {
     "id": "fade162e-27d0-5982-8e34-8dda7325593e",
@@ -469,7 +3052,376 @@
     },
     "related_events": [
       "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 4.4,
+      "duration_seconds": 0.8,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96.0,
+            33.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            103,
+            47
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.0,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            101.5,
+            46.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96,
+            33
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            103,
+            47
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.0,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            101.5,
+            46.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        103,
+        47
+      ],
+      "ball_end": [
+        120,
+        46
+      ]
+    }
   },
   {
     "id": "4ce65f5e-4955-536d-91c5-80a9b7114213",
@@ -524,7 +3476,376 @@
     },
     "related_events": [
       "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 0,
+      "duration_seconds": 2,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.2,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            35.5,
+            11.2
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            32.5,
+            27.8
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            31.5,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            35.5,
+            71.2
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            55.5,
+            38.8
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            32.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            67.5,
+            59.2
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            88.5,
+            10.8
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            104.0,
+            43.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            86.5,
+            69.2
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.2,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            96.3,
+            71.2
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            105.0,
+            39.8
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            99.7,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            96.3,
+            11.2
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            89.66,
+            38.8
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            81.94,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            80.94,
+            23.2
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            73.82,
+            66.8
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            67.54,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            71.82,
+            13.2
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.6364,
+            28.3455
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.0909,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.6364,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.2727,
+            32.4545
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.5455,
+            58.6545
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.6364,
+            11.3455
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            106.0,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.5455,
+            68.6545
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.1364,
+            40.3455
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.2909,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            90.7964,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.5309,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            82.9855,
+            22.6545
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            74.9564,
+            67.3455
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.1309,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            73.8655,
+            12.6545
+          ]
+        }
+      ],
+      "ball_start": [
+        91,
+        32
+      ],
+      "ball_end": [
+        106,
+        42
+      ]
+    }
   },
   {
     "id": "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0",
@@ -561,7 +3882,376 @@
     "related_events": [
       "4ce65f5e-4955-536d-91c5-80a9b7114213",
       "5b19481a-c586-5ca4-be93-8148cabd8170"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 2,
+      "duration_seconds": 0.4,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.6364,
+            28.3455
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.0909,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.5455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.6364,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.2727,
+            32.4545
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.5455,
+            58.6545
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.6364,
+            11.3455
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            106.0,
+            42.0
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.5455,
+            68.6545
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.5636,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            70.6545
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.1364,
+            40.3455
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.2909,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.3455,
+            10.6545
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            90.7964,
+            39.3455
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.5309,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            82.9855,
+            22.6545
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            74.9564,
+            67.3455
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.1309,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            73.8655,
+            12.6545
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.8636,
+            28.4545
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.4091,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.8636,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.7273,
+            32.5455
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.9545,
+            58.5455
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.8636,
+            11.4545
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            106,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.9545,
+            68.5455
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.3636,
+            40.4545
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.6091,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            91.0236,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.8491,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            83.3945,
+            22.5455
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            75.1836,
+            67.4545
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.4491,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            74.2745,
+            12.5455
+          ]
+        }
+      ],
+      "ball_start": [
+        106,
+        42
+      ],
+      "ball_end": [
+        106,
+        42
+      ]
+    }
   },
   {
     "id": "5b19481a-c586-5ca4-be93-8148cabd8170",
@@ -604,7 +4294,376 @@
     "related_events": [
       "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0",
       "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 2.4,
+      "duration_seconds": 2,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            7.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            33.8636,
+            28.4545
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            33.4091,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            37.9545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            56.8636,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            93.7273,
+            32.5455
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            69.9545,
+            58.5455
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            89.8636,
+            11.4545
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            106,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            88.9545,
+            68.5455
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            117.6364,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            70.5455
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            106.3636,
+            40.4545
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            101.6091,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            98.7545,
+            10.5455
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            91.0236,
+            39.4545
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            83.8491,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            83.3945,
+            22.5455
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            75.1836,
+            67.4545
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            69.4491,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            74.2745,
+            12.5455
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96.0,
+            33.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            109,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            118.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            107.5,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        106,
+        42
+      ],
+      "ball_end": [
+        109,
+        42
+      ]
+    }
   },
   {
     "id": "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f",
@@ -706,7 +4765,376 @@
     "related_events": [
       "5b19481a-c586-5ca4-be93-8148cabd8170",
       "36480d95-94ef-52ca-a40c-20c5e20f08ba"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 4.4,
+      "duration_seconds": 0.8,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96.0,
+            33.0
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            109,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            118.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            107.5,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96,
+            33
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            109,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            118.0,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            107.5,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        109,
+        42
+      ],
+      "ball_end": [
+        118,
+        41
+      ]
+    }
   },
   {
     "id": "36480d95-94ef-52ca-a40c-20c5e20f08ba",
@@ -750,6 +5178,375 @@
     },
     "related_events": [
       "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f"
-    ]
+    ],
+    "tracking": {
+      "synthetic": true,
+      "clip_time_seconds": 5.2,
+      "duration_seconds": 0.5,
+      "start": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96,
+            33
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            109,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            118.0,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            107.5,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "end": [
+        {
+          "player_id": 90010,
+          "team_id": 9001,
+          "location": [
+            8.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90011,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90012,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90013,
+          "team_id": 9001,
+          "location": [
+            35.0,
+            51.0
+          ]
+        },
+        {
+          "player_id": 90014,
+          "team_id": 9001,
+          "location": [
+            40.0,
+            70.0
+          ]
+        },
+        {
+          "player_id": 90015,
+          "team_id": 9001,
+          "location": [
+            58.0,
+            40.0
+          ]
+        },
+        {
+          "player_id": 9102,
+          "team_id": 9001,
+          "location": [
+            96,
+            33
+          ]
+        },
+        {
+          "player_id": 90017,
+          "team_id": 9001,
+          "location": [
+            72.0,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90018,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            12.0
+          ]
+        },
+        {
+          "player_id": 9101,
+          "team_id": 9001,
+          "location": [
+            109,
+            42
+          ]
+        },
+        {
+          "player_id": 90020,
+          "team_id": 9001,
+          "location": [
+            91.0,
+            68.0
+          ]
+        },
+        {
+          "player_id": 9201,
+          "team_id": 9002,
+          "location": [
+            118,
+            41
+          ]
+        },
+        {
+          "player_id": 90021,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            70.0
+          ]
+        },
+        {
+          "player_id": 9202,
+          "team_id": 9002,
+          "location": [
+            107.5,
+            41.0
+          ]
+        },
+        {
+          "player_id": 90023,
+          "team_id": 9002,
+          "location": [
+            103.2,
+            29.0
+          ]
+        },
+        {
+          "player_id": 90024,
+          "team_id": 9002,
+          "location": [
+            100.8,
+            10.0
+          ]
+        },
+        {
+          "player_id": 90025,
+          "team_id": 9002,
+          "location": [
+            92.16,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90026,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            58.0
+          ]
+        },
+        {
+          "player_id": 90027,
+          "team_id": 9002,
+          "location": [
+            85.44,
+            22.0
+          ]
+        },
+        {
+          "player_id": 90028,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            68.0
+          ]
+        },
+        {
+          "player_id": 90029,
+          "team_id": 9002,
+          "location": [
+            71.04,
+            40.0
+          ]
+        },
+        {
+          "player_id": 90030,
+          "team_id": 9002,
+          "location": [
+            76.32,
+            12.0
+          ]
+        }
+      ],
+      "ball_start": [
+        118,
+        41
+      ],
+      "ball_end": [
+        118,
+        41
+      ]
+    }
   }
 ]

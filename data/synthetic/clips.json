@@ -39,7 +39,8 @@
         "breathing",
         "lighting"
       ]
-    }
+    },
+    "tracking_duration_seconds": 5.2
   },
   {
     "id": "off_target",
@@ -81,7 +82,8 @@
         "breathing",
         "lighting"
       ]
-    }
+    },
+    "tracking_duration_seconds": 5.2
   },
   {
     "id": "saved",
@@ -124,6 +126,7 @@
         "breathing",
         "lighting"
       ]
-    }
+    },
+    "tracking_duration_seconds": 5.7
   }
 ]

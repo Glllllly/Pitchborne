@@ -2,6 +2,7 @@ const $ = id => document.getElementById(id);
 const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
 const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
+let pitchAnimation=null, lastPitchEvent=null;
 const seen = () => data.events.slice(0,cursor);
 const unlocked = clip => seen().some(e=>e.id===clip.trigger_event_id);
 const shotFor = clip => data.events.find(e=>e.id===clip.trigger_event_id);
@@ -96,12 +97,21 @@ function pitchState(event){
   const active=new Set([event.player.id]);
   if(event.pass)active.add(event.pass.recipient.id);
   if(event.shot)shot.shot.freeze_frame.filter(p=>p.position.name==="Goalkeeper").forEach(p=>active.add(p.player.id));
+  if(event.tracking){
+    return {points:event.tracking.start.map(p=>({
+      player:data.match.players.find(entry=>entry.player.id===p.player_id).player,
+      location:p.location,teammate:p.team_id===data.match.home_team.id
+    })),active};
+  }
   return {points:[...positions.values()],active};
 }
 function renderPitch(event){
+  cancelAnimationFrame(pitchAnimation);
   const group=$("markers");group.replaceChildren();
   $("next").disabled=cursor>=data.events.length;
-  if(!event){$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
+  if(!event){lastPitchEvent=null;$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
+  const shouldAnimate=lastPitchEvent!==event.id;
+  lastPitchEvent=event.id;
   const svg=(tag,attrs,text)=>{
     const node=document.createElementNS("http://www.w3.org/2000/svg",tag);
     Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,value));
@@ -114,25 +124,45 @@ function renderPitch(event){
     svg("line",{"data-role":"event-route",x1:event.location[0],y1:event.location[1],x2:end[0],y2:end[1],stroke:"#f0ffc0","stroke-width":".55","stroke-dasharray":event.type.name==="Carry"?".6 .7":"2 .8","marker-end":"url(#route-arrow)"});
     svg("circle",{cx:end[0],cy:end[1],r:"1.5",fill:"none",stroke:"#fff9c2","stroke-width":".25"});
   }
+  const movingPlayers=[];
   points.forEach(point=>{
+    const firstChild=group.children.length;
     const isActive=active.has(point.player.id);
-    if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:1.65,fill:"none",stroke:point.teammate?"#c4f277":"#f4ae8e","stroke-width":".22",opacity:".85"});
-    const circle=svg("circle",{"data-player-id":point.player.id,"data-active":isActive,cx:point.location[0],cy:point.location[1],r:1.15,fill:point.teammate?"#c4f277":"#f4ae8e",stroke:"#142219","stroke-width":".25",opacity:isActive?1:.3});
+    if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:2,fill:"none",stroke:point.teammate?"#c4f277":"#f4ae8e","stroke-width":".22",opacity:".85"});
+    const circle=svg("circle",{"data-player-id":point.player.id,"data-active":isActive,cx:point.location[0],cy:point.location[1],r:1.5,fill:point.teammate?"#c4f277":"#f4ae8e",stroke:"#142219","stroke-width":".25",opacity:isActive?1:.45});
     const title=document.createElementNS(circle.namespaceURI,"title");title.textContent=point.player.name;circle.append(title);
     const role=data.match.players.find(p=>p.player.id===point.player.id)?.role;
-    const roleName={striker:"射手",goalkeeper:"门将",defender:"后卫",midfielder:"传球者"}[role] || "球员";
+    const entry=data.match.players.find(p=>p.player.id===point.player.id);
+    const roleName={striker:"射手",goalkeeper:"门将",defender:"后卫",midfielder:"传球者"}[role] || entry?.position || "球员";
     const labelY=point.location[1]+(role==="defender"?-4:role==="striker"?4.5:role==="goalkeeper"?-3:3.4);
-    svg("text",{x:point.location[0],y:labelY,"text-anchor":"middle",fill:"#ffffff",opacity:isActive?1:.45,"font-size":"1.65","paint-order":"stroke",stroke:"#163025","stroke-width":".6"},`${roleName} ${point.player.name.split(" ")[0]}`);
+    if(isActive)svg("text",{x:point.location[0],y:labelY,"text-anchor":"middle",fill:"#ffffff","font-size":"2.4","paint-order":"stroke",stroke:"#163025","stroke-width":".6"},`${roleName} ${point.player.name.split(" ")[0]}`);
+    else svg("text",{x:point.location[0],y:point.location[1]+.65,"text-anchor":"middle",fill:"#ffffff",opacity:.75,"font-size":"1.9"},String(entry?.shirt_number||""));
+    const children=Array.from(group.children).slice(firstChild);
+    const wrapper=svg("g",{"data-moving-player":point.player.id});
+    children.forEach(child=>wrapper.append(child));
+    const target=event.tracking?.end.find(p=>p.player_id===point.player.id)?.location || point.location;
+    movingPlayers.push({wrapper,from:point.location,to:target});
   });
   const ball=end||event.location;
   const football=svg("g",{"data-role":"football",transform:`translate(${ball[0]} ${ball[1]})`});
   const disc=document.createElementNS(football.namespaceURI,"circle");
-  Object.entries({r:1.1,fill:"#fff",stroke:"#101b17","stroke-width":".25"}).forEach(([k,v])=>disc.setAttribute(k,v));football.append(disc);
+  Object.entries({r:1.6,fill:"#fff",stroke:"#101b17","stroke-width":".3"}).forEach(([k,v])=>disc.setAttribute(k,v));football.append(disc);
   const patch=document.createElementNS(football.namespaceURI,"path");patch.setAttribute("d","M0 -.55 .52 -.17 .32 .45 -.32 .45 -.52 -.17Z");patch.setAttribute("fill","#162019");football.append(patch);
+  if(event.tracking){
+    const began=performance.now(),duration=shouldAnimate?Number($("speed").value)*.85:0;
+    function animate(now){
+      const t=duration?Math.min((now-began)/duration,1):1;
+      movingPlayers.forEach(({wrapper,from,to})=>wrapper.setAttribute("transform",`translate(${(to[0]-from[0])*t} ${(to[1]-from[1])*t})`));
+      const a=event.tracking.ball_start,b=event.tracking.ball_end;
+      football.setAttribute("transform",`translate(${a[0]+(b[0]-a[0])*t} ${a[1]+(b[1]-a[1])*t})`);
+      if(t<1)pitchAnimation=requestAnimationFrame(animate);
+    }
+    animate(began);
+  }
   const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：传球。虚线连接传球起点与落点。`
     :event.type.name==="Carry"?`${event.player.name} 带球推进，足球标记在本次推进终点。`
-    :event.type.name==="Shot"?`${event.player.name} 起脚射门 → ${labels[event.shot.outcome.name]}。彩色圆点为射门瞬间站位，足球标记为射门终点。`
-    :event.type.name==="Goal Keeper"?`${event.player.name} 完成扑救。门将和足球位于扑救位置，其余球员保留示意站位。`
+    :event.type.name==="Shot"?`${event.player.name} 起脚射门 → ${labels[event.shot.outcome.name]}。射手与门将高亮，足球沿射门路线移动。`
+    :event.type.name==="Goal Keeper"?`${event.player.name} 完成扑救。门将和足球位于扑救位置，其余球员保留模拟站位。`
     :`${event.player.name} 接到传球，准备向球门推进。`;
   $("action-caption").textContent=`${event.minute}′ ${eventLabels[event.type.name]} · ${action}`;
 }

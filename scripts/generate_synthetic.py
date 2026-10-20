@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
+from synthetic_tracking import add_tracking
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "synthetic"
@@ -149,6 +150,7 @@ def generate():
             {"player": defender, "team_id": 9002, "role": "defender"},
         ],
     }
+    add_tracking(match, events, clips)
     validate(match, events, clips)
     write("match.json", match)
     write("events.json", events)

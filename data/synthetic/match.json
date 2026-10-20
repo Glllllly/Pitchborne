@@ -29,11 +29,63 @@
   "players": [
     {
       "player": {
-        "id": 9101,
-        "name": "Arin Vale"
+        "id": 90010,
+        "name": "Harbor Player 1"
       },
       "team_id": 9001,
-      "role": "striker"
+      "role": "goalkeeper",
+      "shirt_number": 1,
+      "position": "GK"
+    },
+    {
+      "player": {
+        "id": 90011,
+        "name": "Harbor Player 2"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 2,
+      "position": "LB"
+    },
+    {
+      "player": {
+        "id": 90012,
+        "name": "Harbor Player 3"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 3,
+      "position": "CB"
+    },
+    {
+      "player": {
+        "id": 90013,
+        "name": "Harbor Player 4"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 4,
+      "position": "CB"
+    },
+    {
+      "player": {
+        "id": 90014,
+        "name": "Harbor Player 5"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 5,
+      "position": "RB"
+    },
+    {
+      "player": {
+        "id": 90015,
+        "name": "Harbor Player 6"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 6,
+      "position": "DM"
     },
     {
       "player": {
@@ -41,7 +93,49 @@
         "name": "Niko Reed"
       },
       "team_id": 9001,
-      "role": "midfielder"
+      "role": "midfielder",
+      "shirt_number": 7,
+      "position": "CM"
+    },
+    {
+      "player": {
+        "id": 90017,
+        "name": "Harbor Player 8"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 8,
+      "position": "CM"
+    },
+    {
+      "player": {
+        "id": 90018,
+        "name": "Harbor Player 9"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 9,
+      "position": "LW"
+    },
+    {
+      "player": {
+        "id": 9101,
+        "name": "Arin Vale"
+      },
+      "team_id": 9001,
+      "role": "striker",
+      "shirt_number": 10,
+      "position": "ST"
+    },
+    {
+      "player": {
+        "id": 90020,
+        "name": "Harbor Player 11"
+      },
+      "team_id": 9001,
+      "role": "outfield",
+      "shirt_number": 11,
+      "position": "RW"
     },
     {
       "player": {
@@ -49,7 +143,19 @@
         "name": "Toma Finch"
       },
       "team_id": 9002,
-      "role": "goalkeeper"
+      "role": "goalkeeper",
+      "shirt_number": 1,
+      "position": "GK"
+    },
+    {
+      "player": {
+        "id": 90021,
+        "name": "Mountain Player 2"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 2,
+      "position": "LB"
     },
     {
       "player": {
@@ -57,7 +163,99 @@
         "name": "Lio Moss"
       },
       "team_id": 9002,
-      "role": "defender"
+      "role": "defender",
+      "shirt_number": 3,
+      "position": "CB"
+    },
+    {
+      "player": {
+        "id": 90023,
+        "name": "Mountain Player 4"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 4,
+      "position": "CB"
+    },
+    {
+      "player": {
+        "id": 90024,
+        "name": "Mountain Player 5"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 5,
+      "position": "RB"
+    },
+    {
+      "player": {
+        "id": 90025,
+        "name": "Mountain Player 6"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 6,
+      "position": "DM"
+    },
+    {
+      "player": {
+        "id": 90026,
+        "name": "Mountain Player 7"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 7,
+      "position": "CM"
+    },
+    {
+      "player": {
+        "id": 90027,
+        "name": "Mountain Player 8"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 8,
+      "position": "CM"
+    },
+    {
+      "player": {
+        "id": 90028,
+        "name": "Mountain Player 9"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 9,
+      "position": "LW"
+    },
+    {
+      "player": {
+        "id": 90029,
+        "name": "Mountain Player 10"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 10,
+      "position": "ST"
+    },
+    {
+      "player": {
+        "id": 90030,
+        "name": "Mountain Player 11"
+      },
+      "team_id": 9002,
+      "role": "outfield",
+      "shirt_number": 11,
+      "position": "RW"
     }
-  ]
+  ],
+  "tracking": {
+    "type": "synthetic_keyframes",
+    "formation": "4-3-3",
+    "physical_pitch_metres": [
+      105,
+      68
+    ],
+    "interpolation": "linear between each event's start/end frame",
+    "limitations": "Authored movements, not physical simulation; no collision or offside solver."
+  }
 }
