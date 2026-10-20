@@ -52,10 +52,18 @@ function render(){
   $("prepare").disabled=busy || !selected || !unlocked(selected);
   $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"射手":"门将"}视角`:"等待关键事件";
   if(selected && unlocked(selected)){
-    const shot=shotFor(selected), ff=shot.shot.freeze_frame, def=ff.find(p=>p.position.name!=="Goalkeeper"&&!p.teammate);
-    const distance=def?Math.hypot(def.location[0]-shot.location[0],def.location[1]-shot.location[1]):null;
+    const shot=shotFor(selected);
+    const metric=data.match.tracking?.physical_pitch_metres || [105,68];
+    const coords=data.match.coordinate_system;
+    const metresBetween=(a,b)=>Math.hypot((a[0]-b[0])*metric[0]/coords.length,(a[1]-b[1])*metric[1]/coords.width);
+    const opponents=shot.tracking
+      ?shot.tracking.start.filter(p=>p.team_id!==shot.team.id && data.match.players.find(entry=>entry.player.id===p.player_id)?.role!=="goalkeeper")
+      :shot.shot.freeze_frame.filter(p=>!p.teammate && p.position.name!=="Goalkeeper");
+    const distance=opponents.length?Math.min(...opponents.map(p=>metresBetween(p.location,shot.location))):null;
+    const goalDistance=metresBetween(shot.location,[coords.goal_line_x,(coords.goal_mouth_y[0]+coords.goal_mouth_y[1])/2]);
+    const resultText={Goal:"球进了，主队取得领先。",Saved:"射门被门将扑出，比分不变。","Off T":"射门偏出，比分不变。"}[shot.shot.outcome.name];
     $("insight").textContent=$("mode").value==="analyst"
-      ?`射门位置 (${shot.location.join(", ")}) · 最近样例防守者距离 ${distance?.toFixed(1)} 归一化单位。依据：${shot.id}。局部快照不能证明整条防线已被突破。`
+      ?`距球门中心约 ${Math.round(goalDistance)} 米起脚${distance===null?"":`，最近防守球员约 ${distance.toFixed(1)} 米`}。${resultText}（距离按 ${metric[0]} × ${metric[1]} 米模拟球场估算）`
       :`接球推进后，射手在附近有防守者的情况下起脚。${shot.shot.outcome.name==="Goal"?"这次射门让主队取得领先。":shot.shot.outcome.name==="Saved"?"门将挡住射门，比分没有改变。":"球偏出球门，这次进攻未能转化为进球。"}`;
   }else $("insight").textContent="播放比赛片段，查看这一刻发生了什么。";
   renderPitch(last);
