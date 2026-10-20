@@ -1,0 +1,755 @@
+[
+  {
+    "id": "2248b534-5334-5391-8397-23fbfad18546",
+    "index": 1,
+    "period": 1,
+    "timestamp": "00:12:10.000",
+    "minute": 12,
+    "second": 10,
+    "type": {
+      "name": "Pass"
+    },
+    "possession": 1,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9102,
+      "name": "Niko Reed"
+    },
+    "location": [
+      91,
+      32
+    ],
+    "duration": 1.5,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "pass": {
+      "recipient": {
+        "id": 9101,
+        "name": "Arin Vale"
+      },
+      "end_location": [
+        105,
+        35
+      ],
+      "height": {
+        "name": "Ground Pass"
+      },
+      "body_part": {
+        "name": "Right Foot"
+      },
+      "outcome": {
+        "name": "Complete"
+      }
+    },
+    "related_events": [
+      "ec12f12d-4aea-5e27-96ae-7c331e3d52a3"
+    ]
+  },
+  {
+    "id": "ec12f12d-4aea-5e27-96ae-7c331e3d52a3",
+    "index": 2,
+    "period": 1,
+    "timestamp": "00:12:12.000",
+    "minute": 12,
+    "second": 12,
+    "type": {
+      "name": "Ball Receipt*"
+    },
+    "possession": 1,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      105,
+      35
+    ],
+    "duration": 0,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "related_events": [
+      "2248b534-5334-5391-8397-23fbfad18546",
+      "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d"
+    ]
+  },
+  {
+    "id": "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d",
+    "index": 3,
+    "period": 1,
+    "timestamp": "00:12:12.000",
+    "minute": 12,
+    "second": 12,
+    "type": {
+      "name": "Carry"
+    },
+    "possession": 1,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      105,
+      35
+    ],
+    "duration": 2,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "carry": {
+      "end_location": [
+        108,
+        35
+      ]
+    },
+    "related_events": [
+      "ec12f12d-4aea-5e27-96ae-7c331e3d52a3",
+      "67bfb394-8041-5b54-a515-9245db7c6073"
+    ]
+  },
+  {
+    "id": "67bfb394-8041-5b54-a515-9245db7c6073",
+    "index": 4,
+    "period": 1,
+    "timestamp": "00:12:14.000",
+    "minute": 12,
+    "second": 14,
+    "type": {
+      "name": "Shot"
+    },
+    "possession": 1,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      108,
+      35
+    ],
+    "duration": 0.6,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "under_pressure": true,
+    "shot": {
+      "end_location": [
+        120,
+        43,
+        1.2
+      ],
+      "key_pass_id": "2248b534-5334-5391-8397-23fbfad18546",
+      "body_part": {
+        "name": "Right Foot"
+      },
+      "technique": {
+        "name": "Normal"
+      },
+      "type": {
+        "name": "Open Play"
+      },
+      "outcome": {
+        "name": "Goal"
+      },
+      "freeze_frame": [
+        {
+          "location": [
+            117,
+            38
+          ],
+          "player": {
+            "id": 9201,
+            "name": "Toma Finch"
+          },
+          "position": {
+            "name": "Goalkeeper"
+          },
+          "teammate": false
+        },
+        {
+          "location": [
+            106.5,
+            34
+          ],
+          "player": {
+            "id": 9202,
+            "name": "Lio Moss"
+          },
+          "position": {
+            "name": "Center Back"
+          },
+          "teammate": false
+        },
+        {
+          "location": [
+            96,
+            33
+          ],
+          "player": {
+            "id": 9102,
+            "name": "Niko Reed"
+          },
+          "position": {
+            "name": "Center Midfield"
+          },
+          "teammate": true
+        }
+      ]
+    },
+    "related_events": [
+      "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d"
+    ]
+  },
+  {
+    "id": "10bb54f6-dc3c-5bef-9da0-60078026892b",
+    "index": 5,
+    "period": 1,
+    "timestamp": "00:34:10.000",
+    "minute": 34,
+    "second": 10,
+    "type": {
+      "name": "Pass"
+    },
+    "possession": 2,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9102,
+      "name": "Niko Reed"
+    },
+    "location": [
+      91,
+      32
+    ],
+    "duration": 1.5,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "pass": {
+      "recipient": {
+        "id": 9101,
+        "name": "Arin Vale"
+      },
+      "end_location": [
+        100,
+        47
+      ],
+      "height": {
+        "name": "Ground Pass"
+      },
+      "body_part": {
+        "name": "Right Foot"
+      },
+      "outcome": {
+        "name": "Complete"
+      }
+    },
+    "related_events": [
+      "1c037456-894f-570a-b21f-2f5b124c8bba"
+    ]
+  },
+  {
+    "id": "1c037456-894f-570a-b21f-2f5b124c8bba",
+    "index": 6,
+    "period": 1,
+    "timestamp": "00:34:12.000",
+    "minute": 34,
+    "second": 12,
+    "type": {
+      "name": "Ball Receipt*"
+    },
+    "possession": 2,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      100,
+      47
+    ],
+    "duration": 0,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "related_events": [
+      "10bb54f6-dc3c-5bef-9da0-60078026892b",
+      "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00"
+    ]
+  },
+  {
+    "id": "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00",
+    "index": 7,
+    "period": 1,
+    "timestamp": "00:34:12.000",
+    "minute": 34,
+    "second": 12,
+    "type": {
+      "name": "Carry"
+    },
+    "possession": 2,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      100,
+      47
+    ],
+    "duration": 2,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "carry": {
+      "end_location": [
+        103,
+        47
+      ]
+    },
+    "related_events": [
+      "1c037456-894f-570a-b21f-2f5b124c8bba",
+      "fade162e-27d0-5982-8e34-8dda7325593e"
+    ]
+  },
+  {
+    "id": "fade162e-27d0-5982-8e34-8dda7325593e",
+    "index": 8,
+    "period": 1,
+    "timestamp": "00:34:14.000",
+    "minute": 34,
+    "second": 14,
+    "type": {
+      "name": "Shot"
+    },
+    "possession": 2,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      103,
+      47
+    ],
+    "duration": 0.6,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "under_pressure": true,
+    "shot": {
+      "end_location": [
+        120,
+        46,
+        1.0
+      ],
+      "key_pass_id": "10bb54f6-dc3c-5bef-9da0-60078026892b",
+      "body_part": {
+        "name": "Right Foot"
+      },
+      "technique": {
+        "name": "Normal"
+      },
+      "type": {
+        "name": "Open Play"
+      },
+      "outcome": {
+        "name": "Off T"
+      },
+      "freeze_frame": [
+        {
+          "location": [
+            117,
+            42
+          ],
+          "player": {
+            "id": 9201,
+            "name": "Toma Finch"
+          },
+          "position": {
+            "name": "Goalkeeper"
+          },
+          "teammate": false
+        },
+        {
+          "location": [
+            101.5,
+            46
+          ],
+          "player": {
+            "id": 9202,
+            "name": "Lio Moss"
+          },
+          "position": {
+            "name": "Center Back"
+          },
+          "teammate": false
+        },
+        {
+          "location": [
+            96,
+            33
+          ],
+          "player": {
+            "id": 9102,
+            "name": "Niko Reed"
+          },
+          "position": {
+            "name": "Center Midfield"
+          },
+          "teammate": true
+        }
+      ]
+    },
+    "related_events": [
+      "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00"
+    ]
+  },
+  {
+    "id": "4ce65f5e-4955-536d-91c5-80a9b7114213",
+    "index": 9,
+    "period": 2,
+    "timestamp": "00:22:10.000",
+    "minute": 67,
+    "second": 10,
+    "type": {
+      "name": "Pass"
+    },
+    "possession": 3,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9102,
+      "name": "Niko Reed"
+    },
+    "location": [
+      91,
+      32
+    ],
+    "duration": 1.5,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "pass": {
+      "recipient": {
+        "id": 9101,
+        "name": "Arin Vale"
+      },
+      "end_location": [
+        106,
+        42
+      ],
+      "height": {
+        "name": "Ground Pass"
+      },
+      "body_part": {
+        "name": "Right Foot"
+      },
+      "outcome": {
+        "name": "Complete"
+      }
+    },
+    "related_events": [
+      "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0"
+    ]
+  },
+  {
+    "id": "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0",
+    "index": 10,
+    "period": 2,
+    "timestamp": "00:22:12.000",
+    "minute": 67,
+    "second": 12,
+    "type": {
+      "name": "Ball Receipt*"
+    },
+    "possession": 3,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      106,
+      42
+    ],
+    "duration": 0,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "related_events": [
+      "4ce65f5e-4955-536d-91c5-80a9b7114213",
+      "5b19481a-c586-5ca4-be93-8148cabd8170"
+    ]
+  },
+  {
+    "id": "5b19481a-c586-5ca4-be93-8148cabd8170",
+    "index": 11,
+    "period": 2,
+    "timestamp": "00:22:12.000",
+    "minute": 67,
+    "second": 12,
+    "type": {
+      "name": "Carry"
+    },
+    "possession": 3,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      106,
+      42
+    ],
+    "duration": 2,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "carry": {
+      "end_location": [
+        109,
+        42
+      ]
+    },
+    "related_events": [
+      "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0",
+      "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f"
+    ]
+  },
+  {
+    "id": "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f",
+    "index": 12,
+    "period": 2,
+    "timestamp": "00:22:14.000",
+    "minute": 67,
+    "second": 14,
+    "type": {
+      "name": "Shot"
+    },
+    "possession": 3,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "player": {
+      "id": 9101,
+      "name": "Arin Vale"
+    },
+    "location": [
+      109,
+      42
+    ],
+    "duration": 0.6,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "under_pressure": true,
+    "shot": {
+      "end_location": [
+        118,
+        41,
+        0.8
+      ],
+      "key_pass_id": "4ce65f5e-4955-536d-91c5-80a9b7114213",
+      "body_part": {
+        "name": "Right Foot"
+      },
+      "technique": {
+        "name": "Normal"
+      },
+      "type": {
+        "name": "Open Play"
+      },
+      "outcome": {
+        "name": "Saved"
+      },
+      "freeze_frame": [
+        {
+          "location": [
+            118,
+            40
+          ],
+          "player": {
+            "id": 9201,
+            "name": "Toma Finch"
+          },
+          "position": {
+            "name": "Goalkeeper"
+          },
+          "teammate": false
+        },
+        {
+          "location": [
+            107.5,
+            41
+          ],
+          "player": {
+            "id": 9202,
+            "name": "Lio Moss"
+          },
+          "position": {
+            "name": "Center Back"
+          },
+          "teammate": false
+        },
+        {
+          "location": [
+            96,
+            33
+          ],
+          "player": {
+            "id": 9102,
+            "name": "Niko Reed"
+          },
+          "position": {
+            "name": "Center Midfield"
+          },
+          "teammate": true
+        }
+      ]
+    },
+    "related_events": [
+      "5b19481a-c586-5ca4-be93-8148cabd8170",
+      "36480d95-94ef-52ca-a40c-20c5e20f08ba"
+    ]
+  },
+  {
+    "id": "36480d95-94ef-52ca-a40c-20c5e20f08ba",
+    "index": 13,
+    "period": 2,
+    "timestamp": "00:22:15.000",
+    "minute": 67,
+    "second": 15,
+    "type": {
+      "name": "Goal Keeper"
+    },
+    "possession": 3,
+    "possession_team": {
+      "id": 9001,
+      "name": "Harbor Comets"
+    },
+    "team": {
+      "id": 9002,
+      "name": "Mountain Lanterns"
+    },
+    "player": {
+      "id": 9201,
+      "name": "Toma Finch"
+    },
+    "location": [
+      118,
+      41
+    ],
+    "duration": 0.4,
+    "play_pattern": {
+      "name": "Regular Play"
+    },
+    "synthetic": true,
+    "goalkeeper": {
+      "type": {
+        "name": "Shot Saved"
+      },
+      "outcome": {
+        "name": "Success"
+      }
+    },
+    "related_events": [
+      "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f"
+    ]
+  }
+]

@@ -1,0 +1,129 @@
+[
+  {
+    "id": "goal",
+    "match_id": 990001,
+    "synthetic": true,
+    "event_ids": [
+      "2248b534-5334-5391-8397-23fbfad18546",
+      "ec12f12d-4aea-5e27-96ae-7c331e3d52a3",
+      "48011dd9-b40d-5e10-ae4a-3cb2ae6f423d",
+      "67bfb394-8041-5b54-a515-9245db7c6073"
+    ],
+    "trigger_event_id": "67bfb394-8041-5b54-a515-9245db7c6073",
+    "score_before": [
+      0,
+      0
+    ],
+    "score_after": [
+      1,
+      0
+    ],
+    "available_pov_player_ids": [
+      9101,
+      9201
+    ],
+    "generation_constraints": {
+      "outcome": "Goal",
+      "attacking_direction": "positive_x",
+      "target_duration_seconds": 6,
+      "must_preserve": [
+        "shot outcome",
+        "right-footed shot",
+        "player identities",
+        "relative positions at shot time",
+        "selected first-person viewpoint"
+      ],
+      "creative_details": [
+        "head movement",
+        "crowd ambience",
+        "breathing",
+        "lighting"
+      ]
+    }
+  },
+  {
+    "id": "off_target",
+    "match_id": 990001,
+    "synthetic": true,
+    "event_ids": [
+      "10bb54f6-dc3c-5bef-9da0-60078026892b",
+      "1c037456-894f-570a-b21f-2f5b124c8bba",
+      "a127ce87-5587-5f6a-8ae9-b3c7b1e1cd00",
+      "fade162e-27d0-5982-8e34-8dda7325593e"
+    ],
+    "trigger_event_id": "fade162e-27d0-5982-8e34-8dda7325593e",
+    "score_before": [
+      1,
+      0
+    ],
+    "score_after": [
+      1,
+      0
+    ],
+    "available_pov_player_ids": [
+      9101,
+      9201
+    ],
+    "generation_constraints": {
+      "outcome": "Off T",
+      "attacking_direction": "positive_x",
+      "target_duration_seconds": 6,
+      "must_preserve": [
+        "shot outcome",
+        "right-footed shot",
+        "player identities",
+        "relative positions at shot time",
+        "selected first-person viewpoint"
+      ],
+      "creative_details": [
+        "head movement",
+        "crowd ambience",
+        "breathing",
+        "lighting"
+      ]
+    }
+  },
+  {
+    "id": "saved",
+    "match_id": 990001,
+    "synthetic": true,
+    "event_ids": [
+      "4ce65f5e-4955-536d-91c5-80a9b7114213",
+      "21943b09-94e8-5b4c-b3d4-a8f09cd59dd0",
+      "5b19481a-c586-5ca4-be93-8148cabd8170",
+      "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f",
+      "36480d95-94ef-52ca-a40c-20c5e20f08ba"
+    ],
+    "trigger_event_id": "5a6a4a57-3561-5acf-a2a0-2cbdbd98713f",
+    "score_before": [
+      1,
+      0
+    ],
+    "score_after": [
+      1,
+      0
+    ],
+    "available_pov_player_ids": [
+      9101,
+      9201
+    ],
+    "generation_constraints": {
+      "outcome": "Saved",
+      "attacking_direction": "positive_x",
+      "target_duration_seconds": 6,
+      "must_preserve": [
+        "shot outcome",
+        "right-footed shot",
+        "player identities",
+        "relative positions at shot time",
+        "selected first-person viewpoint"
+      ],
+      "creative_details": [
+        "head movement",
+        "crowd ambience",
+        "breathing",
+        "lighting"
+      ]
+    }
+  }
+]

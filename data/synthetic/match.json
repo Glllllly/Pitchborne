@@ -1,0 +1,63 @@
+{
+  "match_id": 990001,
+  "schema": "pilot.statsbomb-inspired.v1",
+  "synthetic": true,
+  "provenance": "Authored fictional scenarios; no real match records copied.",
+  "home_team": {
+    "id": 9001,
+    "name": "Harbor Comets"
+  },
+  "away_team": {
+    "id": 9002,
+    "name": "Mountain Lanterns"
+  },
+  "coverage": "Three isolated highlight clips, not a complete match event stream.",
+  "coordinate_system": {
+    "length": 120,
+    "width": 80,
+    "xy_units": "normalized pitch units, not metres",
+    "z_units": "metres",
+    "attacking_direction": "positive_x for all supplied clips",
+    "goal_line_x": 120,
+    "goal_mouth_y": [
+      36,
+      44
+    ],
+    "goal_height_metres": 2.44
+  },
+  "clock": "minute is match elapsed minute; timestamp is elapsed within period",
+  "players": [
+    {
+      "player": {
+        "id": 9101,
+        "name": "Arin Vale"
+      },
+      "team_id": 9001,
+      "role": "striker"
+    },
+    {
+      "player": {
+        "id": 9102,
+        "name": "Niko Reed"
+      },
+      "team_id": 9001,
+      "role": "midfielder"
+    },
+    {
+      "player": {
+        "id": 9201,
+        "name": "Toma Finch"
+      },
+      "team_id": 9002,
+      "role": "goalkeeper"
+    },
+    {
+      "player": {
+        "id": 9202,
+        "name": "Lio Moss"
+      },
+      "team_id": 9002,
+      "role": "defender"
+    }
+  ]
+}
