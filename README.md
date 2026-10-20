@@ -1,0 +1,90 @@
+# Inside the Moment — 工作流原型
+
+从合成足球事件生成球员第一视角的场景规划、视频生成请求和解说。
+目前为无依赖的 Python 本地框架；不调用 AI 服务，不产生视频或音频，
+无需 API Key。场景和解说目前使用确定性模板。
+
+```text
+合成事件 → 读取与检查 → 场景规划 ┬→ 视频提示词 ─┐
+                              └→ 解说文本 ───┤
+                                      一致性检查
+                                           ↓
+                                 视频供应商接口（dry-run）
+                                           ↓
+                                      本地结果文件
+```
+
+## 运行
+
+在仓库根目录使用 Python 3.10+：
+
+```powershell
+python scripts/generate_synthetic.py
+python -m workflow.pipeline --clip saved --pov striker --language zh
+python -m workflow.pipeline --clip saved --pov goalkeeper --language en
+```
+
+支持片段：`goal`、`off_target`、`saved`。
+支持视角：`striker`、`goalkeeper`。支持语言：`zh`、`en`。
+使用 `--output 路径` 指定输出位置；默认在 `outputs/<片段>-<视角>-<语言>/`。
+相同配置再次运行会覆盖该目录中的工作流结果文件。
+
+## 产物
+
+| 文件 | 内容 |
+| --- | --- |
+| `scene.json` | 事实、视角球员、位置快照、分段动作、创作边界 |
+| `video_request.json` | 英文视频提示词、负向提示词、时长及事件引用 |
+| `commentary.json` | 中文或英文解说文本；语音尚未生成 |
+| `validation.json` | 结构化结果、证据引用与视角一致性检查 |
+| `video_job.json` | 视频任务状态；目前为 `not_submitted` |
+| `run.json` | 本次运行参数及阶段 |
+
+## 后续接入点
+
+`workflow/pipeline.py` 中各阶段独立为函数：
+
+- `plan_scene`：未来可接 LLM，但应保留事实字段与输入证据引用。
+- `compile_video_request`：替换或优化供应商专用提示词模板。
+- `generate_commentary`：接入基于事实的 AI 解说，再对接 TTS。
+- `VideoProvider.submit`：接入选定的视频服务，返回任务状态及资源引用。
+  真正服务还需补充任务轮询、超时、重试与幂等控制。
+- `validate_outputs`：当前只检查结构化元数据，未来扩展文本语义、
+  视频结果、视角、空间及音画同步检查。
+
+单次工作流按顺序执行，尚无后台生成队列。
+本地结果的 `prepared` 仅表示请求准备完成，不代表模型生成成功。
+比赛片段是局部合成样例，具体数据约定见 `data/synthetic/README.md`。
+
+## 本地观赛界面
+
+```powershell
+python -m workflow.server
+```
+
+打开 http://127.0.0.1:8000 ，使用 Ctrl+C 停止。
+Python 标准库服务仅监听本机，面向开发预览，不用于生产部署。
+
+基础版包含片段播放/暂停/重置/倍速、比分、事件位置示意、样例统计、
+关键事件时间轴、简短事件解释、轻松/数据模式、关注球员过滤及自动片段回顾。
+第一视角面板可选择射手/门将、中英文解说，并真实调用已有准备工作流。
+当前三个场景涉及相同球员，因此关注球员过滤暂时不会明显改变片段列表。
+所有统计只计入已播放的样例事件；不提供全场控球率、xG 等无依据指标。
+
+### API 交接
+
+- `GET /api/match`：返回 `match`、`events`、`clips`。
+- `POST /api/highlights/prepare`：
+  `{"clip_id":"saved","pov":"striker","language":"zh"}`。
+  返回 `job_id` 和 `artifacts`；每次结果保存在 `outputs/<job_id>/`。
+- partner 可实现 `VideoProvider.submit(request)`，在服务调用 `run` 时注入。
+  `request` 提供 `prompt`、`negative_prompt`、`duration_seconds`、
+  `pov`、`outcome`、`source_event_ids`，供应商不支持的参数应在适配器中转换。
+- 当前 prepare 是同步 dry-run。接真实视频服务时应新增独立提交/轮询接口，
+  包括 `queued / running / succeeded / failed` 状态与视频 URL；
+  前端目前没有伪造播放器，也尚未实现真实生成任务的轮询与播放。
+- API Key 放在后端环境变量中，不写进浏览器代码或提交到 Git。
+
+功能范围参考了 [Virtual Studio Crew](https://github.com/timmytrace/pl-insights-engine)
+的公开项目说明；本实现没有复制其代码或素材。重点保留第一视角体验，
+不实现多 Agent 导播、复杂战术指标或多语言解说系统。
