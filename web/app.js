@@ -6,17 +6,24 @@ const seen = () => data.events.slice(0,cursor);
 const unlocked = clip => seen().some(e=>e.id===clip.trigger_event_id);
 const shotFor = clip => data.events.find(e=>e.id===clip.trigger_event_id);
 function clearResult(){epoch++;prepared=null;$("result").hidden=true;$("video-status").textContent="场景已选择，准备生成请求后可预览。";}
-function stop(){clearInterval(timer);timer=null;$("play").textContent="播放片段";}
+function updatePlayback(){
+  const finished=data && cursor>=data.events.length;
+  const boundary=data && cursor>0 && data.clips.some(c=>c.event_ids.at(-1)===data.events[cursor-1].id);
+  $("play").disabled=!!finished;
+  $("play").textContent=timer?"暂停":finished?"全部片段已播完":boundary?"播放下一个片段":cursor?"继续当前片段":"播放片段";
+}
+function stop(){clearInterval(timer);timer=null;updatePlayback();}
 function tick(){
   if(cursor>=data.events.length){stop();return;}
   const event=data.events[cursor++];
   const clip=data.clips.find(c=>c.trigger_event_id===event.id);
   if(clip){selected=clip;clearResult();}
   render();
-  if(cursor===data.events.length)stop();
+  if(cursor===data.events.length || data.clips.some(c=>c.event_ids.at(-1)===event.id))stop();
 }
-function start(){stop();if(cursor>=data.events.length){cursor=0;selected=null;clearResult();render();}timer=setInterval(tick,Number($("speed").value));$("play").textContent="暂停";}
+function start(){stop();if(!data || cursor>=data.events.length)return;timer=setInterval(tick,Number($("speed").value));updatePlayback();}
 function render(){
+  updatePlayback();
   const events=seen(), shots=events.filter(e=>e.type.name==="Shot"), goals=shots.filter(e=>e.shot.outcome.name==="Goal");
   const last=events.at(-1);
   $("score").textContent=`${goals.length} : 0`;
@@ -52,18 +59,84 @@ function render(){
   }else $("insight").textContent="播放比赛片段，查看这一刻发生了什么。";
   renderPitch(last);
 }
+function pitchState(event){
+  const clip=data.clips.find(c=>c.event_ids.includes(event.id));
+  const chain=clip.event_ids.map(id=>data.events.find(e=>e.id===id));
+  const shot=shotFor(clip);
+  const positions=new Map([
+    [shot.player.id,{location:shot.location,player:shot.player,teammate:true}],
+    ...shot.shot.freeze_frame.map(p=>[p.player.id,{...p}])
+  ]);
+  // Seed participants with their first known event position. Other positions are
+  // explicitly schematic shot-snapshot fallbacks, never inferred tracking.
+  const initialized=new Set();
+  for(const item of chain){
+    if(item.type.name==="Goal Keeper")continue;
+    if(!initialized.has(item.player.id)){
+      positions.set(item.player.id,{location:item.location,player:item.player,teammate:item.team.id===data.match.home_team.id});
+      initialized.add(item.player.id);
+    }
+    if(item.pass && !initialized.has(item.pass.recipient.id)){
+      positions.set(item.pass.recipient.id,{location:item.pass.end_location,player:item.pass.recipient,teammate:true});
+      initialized.add(item.pass.recipient.id);
+    }
+  }
+  for(const item of chain.slice(0,chain.findIndex(e=>e.id===event.id)+1)){
+    if(item.shot){
+      item.shot.freeze_frame.forEach(p=>positions.set(p.player.id,{...p}));
+    }
+    positions.set(item.player.id,{
+      player:item.player,teammate:item.team.id===data.match.home_team.id,
+      location:item.carry?.end_location || item.location
+    });
+    if(item.pass)positions.set(item.pass.recipient.id,{
+      player:item.pass.recipient,teammate:true,location:item.pass.end_location
+    });
+  }
+  const active=new Set([event.player.id]);
+  if(event.pass)active.add(event.pass.recipient.id);
+  if(event.shot)shot.shot.freeze_frame.filter(p=>p.position.name==="Goalkeeper").forEach(p=>active.add(p.player.id));
+  return {points:[...positions.values()],active};
+}
 function renderPitch(event){
   const group=$("markers");group.replaceChildren();
-  if(!event)return;
-  const selectedShot=selected && unlocked(selected)?shotFor(selected):null;
-  const snapshot=event.type.name==="Shot"?event:selectedShot && selectedShot.possession===event.possession?selectedShot:null;
-  const points=snapshot?[{location:snapshot.location,player:snapshot.player,teammate:true},...snapshot.shot.freeze_frame]:[{location:event.location,player:event.player,teammate:event.team.id===data.match.home_team.id}];
+  $("next").disabled=cursor>=data.events.length;
+  if(!event){$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
+  const svg=(tag,attrs,text)=>{
+    const node=document.createElementNS("http://www.w3.org/2000/svg",tag);
+    Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,value));
+    if(text)node.textContent=text;group.append(node);return node;
+  };
+  const {points,active}=pitchState(event);
+  const end=event.pass?.end_location || event.carry?.end_location || event.shot?.end_location;
+  if(end){
+    svg("line",{x1:event.location[0],y1:event.location[1],x2:end[0],y2:end[1],stroke:"#e6ff8c","stroke-width":"1.6",opacity:".15"});
+    svg("line",{"data-role":"event-route",x1:event.location[0],y1:event.location[1],x2:end[0],y2:end[1],stroke:"#f0ffc0","stroke-width":".55","stroke-dasharray":event.type.name==="Carry"?".6 .7":"2 .8","marker-end":"url(#route-arrow)"});
+    svg("circle",{cx:end[0],cy:end[1],r:"1.5",fill:"none",stroke:"#fff9c2","stroke-width":".25"});
+  }
   points.forEach(point=>{
-    const circle=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    circle.setAttribute("cx",point.location[0]);circle.setAttribute("cy",point.location[1]);circle.setAttribute("r","1.6");circle.setAttribute("fill",point.teammate?"#c4f277":"#f4ae8e");
-    const title=document.createElementNS(circle.namespaceURI,"title");title.textContent=point.player.name;circle.append(title);group.append(circle);
+    const isActive=active.has(point.player.id);
+    if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:1.65,fill:"none",stroke:point.teammate?"#c4f277":"#f4ae8e","stroke-width":".22",opacity:".85"});
+    const circle=svg("circle",{"data-player-id":point.player.id,"data-active":isActive,cx:point.location[0],cy:point.location[1],r:1.15,fill:point.teammate?"#c4f277":"#f4ae8e",stroke:"#142219","stroke-width":".25",opacity:isActive?1:.3});
+    const title=document.createElementNS(circle.namespaceURI,"title");title.textContent=point.player.name;circle.append(title);
+    const role=data.match.players.find(p=>p.player.id===point.player.id)?.role;
+    const roleName={striker:"射手",goalkeeper:"门将",defender:"后卫",midfielder:"传球者"}[role] || "球员";
+    const labelY=point.location[1]+(role==="defender"?-4:role==="striker"?4.5:role==="goalkeeper"?-3:3.4);
+    svg("text",{x:point.location[0],y:labelY,"text-anchor":"middle",fill:"#ffffff",opacity:isActive?1:.45,"font-size":"1.65","paint-order":"stroke",stroke:"#163025","stroke-width":".6"},`${roleName} ${point.player.name.split(" ")[0]}`);
   });
+  const ball=end||event.location;
+  const football=svg("g",{"data-role":"football",transform:`translate(${ball[0]} ${ball[1]})`});
+  const disc=document.createElementNS(football.namespaceURI,"circle");
+  Object.entries({r:1.1,fill:"#fff",stroke:"#101b17","stroke-width":".25"}).forEach(([k,v])=>disc.setAttribute(k,v));football.append(disc);
+  const patch=document.createElementNS(football.namespaceURI,"path");patch.setAttribute("d","M0 -.55 .52 -.17 .32 .45 -.32 .45 -.52 -.17Z");patch.setAttribute("fill","#162019");football.append(patch);
+  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：传球。虚线连接传球起点与落点。`
+    :event.type.name==="Carry"?`${event.player.name} 带球推进，足球标记在本次推进终点。`
+    :event.type.name==="Shot"?`${event.player.name} 起脚射门 → ${labels[event.shot.outcome.name]}。彩色圆点为射门瞬间站位，足球标记为射门终点。`
+    :event.type.name==="Goal Keeper"?`${event.player.name} 完成扑救。门将和足球位于扑救位置，其余球员保留示意站位。`
+    :`${event.player.name} 接到传球，准备向球门推进。`;
+  $("action-caption").textContent=`${event.minute}′ ${eventLabels[event.type.name]} · ${action}`;
 }
+$("next").onclick=()=>{stop();tick();};
 $("play").onclick=()=>timer?stop():start();
 $("reset").onclick=()=>{stop();cursor=0;selected=null;clearResult();$("video-status").textContent="选择已发生的关键事件，准备你的专属片段。";render();};
 $("speed").onchange=()=>{if(timer)start();};
