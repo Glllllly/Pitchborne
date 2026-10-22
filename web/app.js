@@ -19,16 +19,36 @@ async function updateLiveInsight(event){
   $("insight-title").textContent=`${event.minute}′ · 正在解读当前动作`;
   $("insight-text").textContent="结合当前事件与球场位置，整理分析依据…";
   const controller=new AbortController();insightController=controller;
+  let baselineShown=false;
+  const params={event_id:event.id,audience:audience(),mode:$("mode").value};
+  async function fetchInsight(use_ai){
+    const response=await fetch("/api/insights",{method:"POST",signal:controller.signal,
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({...params,use_ai})});
+    const result=await response.json();if(!response.ok)throw Error("无法读取洞察");return result;
+  }
   try{
     let insight=insightCache.get(key);
     if(!insight){
-      const response=await fetch("/api/insights",{method:"POST",signal:controller.signal,
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({event_id:event.id,audience:audience(),mode:$("mode").value})});
-      insight=await response.json();if(!response.ok)throw Error(insight.error||"无法读取洞察");
-      insightCache.set(key,insight);
+      insight=await fetchInsight(false);
+      if(key!==insightKey)return;
+      displayLiveInsight(insight);baselineShown=true;
+      if(insight.ai_available)insight=await fetchInsight(true);
+      if(insight.generator==="ai" || !insight.ai_available)insightCache.set(key,insight);
     }
     if(key!==insightKey)return;
+    displayLiveInsight(insight);
+  }catch(error){
+    if(key===insightKey && error.name!=="AbortError"){
+      if(baselineShown){$("insight-source").textContent="规则解读 · AI 暂不可用";}
+      else{
+        $("insight-title").textContent="洞察暂时不可用";
+        $("insight-text").textContent="可以继续观看，稍后切换观赛模式重试。";
+      }
+      insightKey=null;
+    }
+  }
+}
+function displayLiveInsight(insight){
     $("insight-title").textContent=insight.title;
     $("insight-text").textContent=insight.text;
     $("insight-source").textContent=insight.generator_label;
@@ -44,13 +64,6 @@ async function updateLiveInsight(event){
       const li=document.createElement("li");li.textContent=item.label;return li;
     }));
     $("insight-evidence").hidden=false;
-  }catch(error){
-    if(key===insightKey && error.name!=="AbortError"){
-      $("insight-title").textContent="洞察暂时不可用";
-      $("insight-text").textContent="可以继续观看，稍后切换观赛模式重试。";
-      insightKey=null;
-    }
-  }
 }
 const audience=()=>$("audience").value;
 function applyAudience(){

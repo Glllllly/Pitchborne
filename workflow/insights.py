@@ -1,9 +1,16 @@
 """Evidence-first live insights. Rule baseline plus a model-ready writing request."""
 
 import math
+from typing import Protocol
 
 
-def build_insight(match, events, event_id, audience="neutral", mode="casual"):
+class InsightWriter(Protocol):
+    """Implement with the chosen server-side model SDK; use a bounded timeout."""
+
+    def generate(self, request: dict) -> dict: ...
+
+
+def build_insight(match, events, event_id, audience="neutral", mode="casual", writer=None):
     if audience not in ("neutral", "home", "away") or mode not in ("casual", "analyst"):
         raise ValueError("Unsupported insight audience or mode")
     index = next((i for i, event in enumerate(events) if event["id"] == event_id), None)
@@ -95,6 +102,8 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual"):
             before = dict(score)
             before[shot["team"]["id"]] -= 1
             other = away if shot["team"]["id"] == home else home
+            facts["score_before"] = [before[home], before[away]]
+            facts["scoring_team_goal_margin"] = score[shot["team"]["id"]] - score[other]
             leads = score[shot["team"]["id"]] > score[other] and before[shot["team"]["id"]] <= before[other]
             title = "在防守附近完成破门" if nearest is not None and nearest < 3 else "把机会变成进球"
             why = "这次进攻被转化成进球，打破了此前的平衡。" if leads and before[home] == before[away] else "这次进攻被转化成进球，改变了比分。"
@@ -111,11 +120,27 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual"):
         title, detail, why = "比赛继续", f"{facts['actor']} 完成了当前动作。", "等待更多事件再判断这次进攻的发展。"
         home_voice = away_voice = ""
     tone = "" if audience == "neutral" else home_voice if favor_attack else away_voice
+    if audience != "neutral":
+        if kind == "Pass":
+            why = ("重点看接球后的处理：我们的球已经向前转移，接下来能否继续推进？" if favor_attack
+                   else "重点看对方接球者：这次向前传递后，他会成为我们防守需要关注的人。") if facts["forward_progress_m"] > 0 else why
+        elif kind == "Carry" and facts["goal_distance_reduction_m"] > 0:
+            why = ("对我们而言，这次带球让持球者更接近球门；能否完成下一步，还要看防守。" if favor_attack
+                   else "从我们的防守视角看，对手正在缩短与球门的距离，下一步处理值得警惕。")
+        elif kind in ("Shot", "Goal Keeper") and facts.get("outcome") == "Saved":
+            why = ("我们已经把进攻推进到射门这一步，但门将的扑救让机会没能变成进球。" if favor_attack
+                   else "对手已经完成射门，我们的门将通过扑救保持了比分。")
+    if mode == "casual":
+        if kind in ("Shot", "Goal Keeper"):
+            detail = f"这脚射门距离球门中心约 {round(facts['goal_distance_m'])} 米。"
+        elif kind == "Carry":
+            detail = f"{facts['actor']} 持球向球门靠近。" if facts["goal_distance_reduction_m"] > 0 else f"{facts['actor']} 调整了持球位置。"
     text = " ".join(part for part in (tone, detail, why) if part)
     if mode == "analyst" and "goal_opening_angle_degrees" in facts:
         text += f" 从射门点看，两门柱夹角约 {facts['goal_opening_angle_degrees']}°。"
-    evidence = [{"event_id": item["id"], "label": f"{item['minute']}′ {item['player']['name']} · {item['type']['name']}"} for item in chain]
-    return {
+    event_names = {"Pass": "传球", "Ball Receipt*": "接球", "Carry": "带球推进", "Shot": "射门", "Goal Keeper": "扑救"}
+    evidence = [{"event_id": item["id"], "label": f"{item['minute']}′ {item['player']['name']} · {event_names.get(item['type']['name'], item['type']['name'])}"} for item in chain]
+    result = {
         "schema": "pilot.live-insight.v1", "event_id": event_id,
         "audience": audience, "mode": mode, "title": title, "text": text,
         "generator": "rules-v1", "generator_label": "规则解读 · AI 接口待接入",
@@ -130,9 +155,36 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual"):
                 "Do not invent intent, causation, xG, historical records, tactical patterns or unseen runs. "
                 "Nearby defenders alone do not prove a shot was blocked or forced wide. "
                 "Return JSON {title, text, evidence_event_ids}. Cite only supplied IDs. "
-                "For casual mode use plain language; for analyst mode explain selected computed metrics."
+                "For casual mode use plain language and at most one numeric metric; for analyst mode explain selected computed metrics. "
+                "For home/away fans speak as a supporter using 我们, with joy, disappointment or relief appropriate to the actual outcome. "
+                "Choose a viewpoint: attacking fans care about creating/converting chances; defending fans care about threats and stopping shots. "
+                "For neutral viewers explain both sides without partisan emotion. Do not merely repeat the event: explain its supported significance."
+                " A one-goal lead is narrow, never a huge advantage. Do not invent crowd reactions or call a result decisive. "
+                "Prioritize a concrete observation from the supplied facts over generic celebration."
             ),
             "audience": audience, "supported_team_id": supported, "attacking_team_id": attack_team,
             "mode": mode, "facts": facts, "evidence": evidence,
         },
     }
+    if writer is not None:
+        try:
+            response = writer.generate(result["ai_request"])
+            allowed = {item["event_id"] for item in evidence}
+            if not isinstance(response, dict):
+                raise ValueError("Expected a JSON object")
+            refs = response.get("evidence_event_ids")
+            if not isinstance(refs, list) or not refs or not all(isinstance(ref, str) and ref in allowed for ref in refs) or event_id not in refs:
+                raise ValueError("Missing current-event evidence or unsupported references")
+            if not all(isinstance(response.get(key), str) and 0 < len(response[key].strip()) <= limit
+                       for key, limit in (("title", 60), ("text", 320))):
+                raise ValueError("Invalid insight title or text")
+            result.update(title=response["title"], text=response["text"], generator="ai",
+                          generator_label="AI 解读 · 基于当前合成事件",
+                          cited_event_ids=refs, validation_scope="Schema and evidence references only; semantic accuracy is not automatically verified.")
+            if "generation" in response:
+                result["generation"] = response["generation"]
+        except Exception:
+            # A slow/failed/invalid model must not remove the rule-based explanation.
+            result["generator_label"] = "规则解读 · AI 暂不可用"
+            result["ai_status"] = "fallback"
+    return result

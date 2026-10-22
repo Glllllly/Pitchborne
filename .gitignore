@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 outputs/
 .env
+node_modules/
+.env.*
+!.env.example

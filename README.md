@@ -1,8 +1,9 @@
 # Inside the Moment — 工作流原型
 
 从合成足球事件生成球员第一视角的场景规划、视频生成请求和解说。
-目前为无依赖的 Python 本地框架；不调用 AI 服务，不产生视频或音频，
-无需 API Key。场景和解说目前使用确定性模板。
+Python 本地框架负责合成事件、场景规划和展示；场边洞察现支持
+OpenRouter AI 解读，未配置时使用规则基线。视频与语音仍待接入。
+场景规划和右侧视频解说仍使用确定性模板。
 
 ```text
 合成事件 → 读取与检查 → 场景规划 ┬→ 视频提示词 ─┐
@@ -101,3 +102,60 @@ Python 标准库服务仅监听本机，面向开发预览，不用于生产部�
 球场现支持 22 人移动关键帧和足球插值动画，当前动作参与者高亮、其他球员调暗。
 每次只播放一个片段，结束自动暂停。数据生成说明见
 `data/synthetic/README.md` 的“22 人移动样例”。
+
+### 场边洞察（Interpret / Explain）
+
+动画每前进一步，球场下方会更新该动作的意义：传球的向前推进、接球后的
+进攻选择、带球缩短的射门距离、射门位置与防守距离，以及进球/扑救对比分的影响。
+主队与客队球迷有不同的关注点和情绪，中立观众使用客观表达；
+轻松模式突出意义，数据模式补充计算指标。“查看分析依据”展开数值与事件链。
+
+- `POST /api/insights`：`{"event_id":"事件 ID","audience":"home","mode":"casual"}`。
+- 只传入当前事件及此前证据，不包含后续事件或尚未发生的射门结果。
+- `workflow/insights.py` 计算 `facts`，返回 `title/text/evidence/render/ai_request`。
+- `ai_request` 是可交给语言模型的事实、观众立场及写作指令。
+  partner 实现 `InsightWriter.generate(request)`，在服务端设置 `INSIGHT_WRITER` 即可接入。
+  模型应返回 `{"title":"...","text":"...","evidence_event_ids":["当前事件 ID"]}`。
+- 未配置模型时，页面明确显示“规则解读 · AI 接口待接入”。这是中文文字解读，
+  尚未接语音；右侧视频解说的语言选择不改变这里的语言。
+- 配置模型后会检查输出长度及事件引用；失败时回退规则解读。
+  引用检查不代表已验证模型的全部语义事实，后续接 API 时仍需评估。
+- 前端丢弃过期请求，缓存同一事件/立场/模式的结果；下一事件立即替换当前洞察。
+
+检查：`python -m unittest discover -s tests -v`。
+
+### 接入 OpenRouter 场边洞察
+
+使用官方 `@openrouter/sdk`（锁定版本见 `package-lock.json`），默认模型：
+`deepseek/deepseek-v4.1-flash-1017`。需要 Node.js 22+。
+
+```powershell
+npm ci
+Copy-Item .env.example .env
+# 在本机编辑 .env，填入 OPENROUTER_API_KEY；已有环境变量时无需创建 .env。
+npm run check:openrouter
+python -m workflow.server
+```
+
+已有 `.env` 时直接编辑，不要覆盖。环境变量优先于 `.env`。
+`check:openrouter` 只显示是否配置、模型及超时，不输出密钥，也不发付费请求。
+可用 `OPENROUTER_MODEL` 更换模型，`OPENROUTER_TIMEOUT_MS` 设置超时（默认 20000）。
+修改配置后重启 Python 服务。
+
+调用链：浏览器 → Python `InsightWriter` → Node SDK → OpenRouter。
+API Key 仅在后端读取，既不写入前端，也不通过命令行参数传递。
+SDK 使用 `stream: true`，收集 `delta.content` 和末尾的 usage，
+其中 reasoning token 数写入响应的 `generation.usage.reasoning_tokens`。
+不存储或展示模型的推理正文。流结束后解析 JSON、检查长度及引用，再更新洞察卡；
+浏览器收到的是检查后的完整文字，不是逐 token 流。
+
+页面先显示规则洞察，再请求 AI 更新。超时、服务错误、截断或错误引用会保留规则结果。
+过期浏览器请求会取消，后端检测断开后终止 SDK 子进程；实际计费取消由上游处理。
+最多同时执行两条模型请求，成功输出有内存缓存。进程重启后缓存清空。
+
+`POST /api/insights` 增加 `use_ai`（默认 `true`）；`false` 仅返回规则基线。
+响应的 `ai_available` 表示已配置，不代表该次请求一定成功。
+`generation` 包含供应商、模型与 token usage；错误日志仅记录经过清理的错误码/状态。
+
+离线验证：`npm test`（模拟 SDK SSE 响应，不消耗 API 额度）和
+`python -m unittest discover -s tests -v`。
