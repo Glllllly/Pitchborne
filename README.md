@@ -139,7 +139,7 @@ python -m workflow.server
 
 已有 `.env` 时直接编辑，不要覆盖。环境变量优先于 `.env`。
 `check:openrouter` 只显示是否配置、模型及超时，不输出密钥，也不发付费请求。
-可用 `OPENROUTER_MODEL` 更换模型，`OPENROUTER_TIMEOUT_MS` 设置超时（默认 20000）。
+可用 `OPENROUTER_MODEL` 更换模型，`OPENROUTER_TIMEOUT_MS` 设置超时（默认 45000）。
 修改配置后重启 Python 服务。
 
 调用链：浏览器 → Python `InsightWriter` → Node SDK → OpenRouter。

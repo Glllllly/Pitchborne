@@ -41,7 +41,7 @@ test("malformed JSON is rejected",async()=>{
 });
 test("configuration contains no secret",()=>{
   const value=configuration({OPENROUTER_API_KEY:"secret-for-test",OPENROUTER_TIMEOUT_MS:"bad"});
-  assert.equal(value.configured,true);assert.equal(value.timeoutMs,20000);
+  assert.equal(value.configured,true);assert.equal(value.timeoutMs,45000);
   assert.ok(!JSON.stringify(value).includes("secret-for-test"));
 });
 test("upstream error chunks cannot be mistaken for completed output",async()=>{

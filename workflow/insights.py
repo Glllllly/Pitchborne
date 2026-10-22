@@ -136,6 +136,28 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
         elif kind == "Carry":
             detail = f"{facts['actor']} 持球向球门靠近。" if facts["goal_distance_reduction_m"] > 0 else f"{facts['actor']} 调整了持球位置。"
     text = " ".join(part for part in (tone, detail, why) if part)
+    if mode == "casual":
+        if kind == "Pass":
+            opening = "往前送！" if facts["forward_progress_m"] > 0 else "交给队友，重新组织。"
+            reaction = "看看接下来怎么处理。" if audience == "neutral" else "我们接着往前打！" if favor_attack else "注意对手接下来这一步！"
+            text = f"{opening}球交给 {facts['recipient']}，{reaction}"
+        elif kind == "Ball Receipt*":
+            reaction = "接下来可以继续组织进攻。" if audience == "neutral" else "球到我们脚下了，看下一步怎么打！" if favor_attack else "对手接住了，得留意他的下一步！"
+            text = f"{facts['actor']} 接到了！{reaction}"
+        elif kind == "Carry":
+            closer = facts["goal_distance_reduction_m"] > 0
+            action = "继续往前带，离球门更近了！" if closer else "带着球调整一下位置。"
+            reaction = "看他下一步怎么处理。" if audience == "neutral" else "我们这次进攻还在继续！" if favor_attack else "对手还在持球，要小心！"
+            text = action + reaction
+        elif kind in ("Shot", "Goal Keeper"):
+            close_defender = facts.get("nearest_defender_m") is not None and facts["nearest_defender_m"] < 3
+            observation = "身边还有防守球员，还是完成了这脚射门。" if close_defender else f"这脚射门离球门约 {round(facts['goal_distance_m'])} 米。"
+            calls = {
+                "Goal": ("起脚——球进了！", "进了进了！我们把这球打进了！", "哎呀，还是丢球了。对手这脚打进了。"),
+                "Saved": ("起脚，扑出来了！门将挡住了这一球！", "起脚！哎，被扑出来了，这次没能得分。", "扑出来了！好样的，我们的门将把这一球挡住了！"),
+                "Off T": ("起脚——偏了！这次射门没能得分。", "射门！哎呀，偏了，可惜这次机会。", "偏了！松一口气，我们没有丢球。"),
+            }
+            text = calls[facts["outcome"]][0 if audience == "neutral" else 1 if favor_attack else 2] + observation
     if mode == "analyst" and "goal_opening_angle_degrees" in facts:
         text += f" 从射门点看，两门柱夹角约 {facts['goal_opening_angle_degrees']}°。"
     event_names = {"Pass": "传球", "Ball Receipt*": "接球", "Carry": "带球推进", "Shot": "射门", "Goal Keeper": "扑救"}
@@ -149,18 +171,32 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
         "render": {"slot": "pitch_commentary", "match_minute": event["minute"], "match_second": event["second"], "expires_on_next_event": True},
         "ai_request": {
             "instructions": (
-                "Write a short Chinese football insight for the current event, explaining its significance. "
+                "你是一位正在现场看球的中文足球解说员，不是数据分析报告的作者。"
+                "用口语和现在时解说当前动作：先叫出动作或结果，再顺势补一句有依据的看点。"
+                "正文以2到4个短句为主，约40到90个汉字；不要每次报分钟、比分、球员全名。"
+                "正常传递时语气自然，射门时加快节奏，进球或扑救时才提高情绪。"
+                "可以用‘往前送！’‘接住了，继续带！’‘起脚——’‘球进了！’‘扑出来了！’，"
+                "但只能用于当前已发生的动作，不能在传球阶段提前喊射门或进球。"
+                "不要写‘从某方视角看’‘这意味着’‘优势仍窄’‘不能放松’‘重点关注’等报告或说教式结语。"
+                "不要把数字念成清单，不要为了体现分析而每次强调领先幅度。"
+                "分析融在解说里：传球把进攻往前送了多少、射手身边有人、扑救让这次机会没有变成进球。"
+                "以下仅为语言风格示例，必须与当前事件和事实相符才可使用："
+                "进攻方进球且附近有防守者：‘起脚——球进了！身边还有人防着，这脚还是打进了，我们领先了！’；"
+                "防守方丢球：‘哎呀，没守住！对手在这么近的位置完成了射门，这球还是进了。’；"
+                "防守方扑救：‘扑出来了！好样的！对手都已经起脚了，我们的门将把这一球挡住了！’。"
                 "Use only the supplied facts and evidence. Never predict or reveal later events. "
                 "Audience preference changes emphasis and emotion, never facts. "
                 "Do not invent intent, causation, xG, historical records, tactical patterns or unseen runs. "
                 "Nearby defenders alone do not prove a shot was blocked or forced wide. "
                 "Return JSON {title, text, evidence_event_ids}. Cite only supplied IDs. "
-                "For casual mode use plain language and at most one numeric metric; for analyst mode explain selected computed metrics. "
+                "For casual mode prefer qualitative observations and at most one rounded numeric metric; "
+                "for analyst mode keep the same spoken commentary style, adding at most two useful metrics naturally. "
                 "For home/away fans speak as a supporter using 我们, with joy, disappointment or relief appropriate to the actual outcome. "
                 "Choose a viewpoint: attacking fans care about creating/converting chances; defending fans care about threats and stopping shots. "
-                "For neutral viewers explain both sides without partisan emotion. Do not merely repeat the event: explain its supported significance."
-                " A one-goal lead is narrow, never a huge advantage. Do not invent crowd reactions or call a result decisive. "
-                "Prioritize a concrete observation from the supplied facts over generic celebration."
+                "Neutral means no team allegiance, not a flat voice: react with excitement to goals and saves without saying 我们. "
+                "A one-goal lead is never a huge advantage, but do not mechanically append a warning about the narrow lead. "
+                "Do not invent crowd reactions or call a result decisive. "
+                "Weave one concrete supported observation into the call, rather than ending with a formal summary."
             ),
             "audience": audience, "supported_team_id": supported, "attacking_team_id": attack_team,
             "mode": mode, "facts": facts, "evidence": evidence,
