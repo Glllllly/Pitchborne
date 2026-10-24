@@ -1,5 +1,8 @@
 # 第一批合成足球事件
 
+仓库另提供 `python -m scripts.generate_match --seed 7` 生成完整 90 分钟的
+独立合成比赛，输出到 `data/matches/seed-7/`。本目录仍保留原来的三个固定技术样例。
+
 本目录完全使用虚构球队、球员与人工设计的比赛情景，没有复制真实比赛记录。
 字段组织参考 [StatsBomb Open Data](https://github.com/hudl/open-data)。
 这是精简的 **StatsBomb-inspired 自定义格式**，不是官方格式的完整实现，

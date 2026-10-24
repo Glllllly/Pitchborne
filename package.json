@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test tests/openrouter.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "check:openrouter": "node --env-file-if-exists=.env adapters/openrouter.mjs --check"
   },
   "dependencies": {

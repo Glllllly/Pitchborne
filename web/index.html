@@ -6,14 +6,14 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header><a class="brand" href="/">ITM<span>INSIDE THE MOMENT</span></a><span class="badge">合成比赛 · 片段体验</span></header>
+  <header><a class="brand" href="/">ITM<span>INSIDE THE MOMENT</span></a><span class="badge">90 分钟合成比赛 · 第一视角</span></header>
   <main>
-    <div class="intro"><div><p class="eyebrow">A DIFFERENT WAY TO FEEL THE GAME</p><h1>站到他的那个位置。</h1><p>跟随比赛，选择一个瞬间，进入球员的视角。</p></div><div class="preferences"><label>观赛模式<select id="mode"><option value="casual">轻松看球</option><option value="analyst">查看数据</option></select></label><label>球迷立场<select id="audience"><option value="neutral">中立观众</option><option value="home">主队球迷</option><option value="away">客队球迷</option></select></label></div></div>
+    <div class="intro"><div><p class="eyebrow">A DIFFERENT WAY TO FEEL THE GAME</p><h1>站到他的那个位置。</h1><p>比赛自动开球。关键时刻，进入球员的第一视角。</p></div><div class="preferences"><label>观赛模式<select id="mode"><option value="casual">轻松看球</option><option value="analyst">查看数据</option></select></label><label>球迷立场<select id="audience"><option value="neutral">中立观众</option><option value="home">主队球迷</option><option value="away">客队球迷</option></select></label></div></div>
     <p id="error" role="alert" hidden></p>
     <div class="layout">
       <section class="match-panel panel">
         <div class="scoreboard"><div><small>主队</small><strong>Harbor Comets</strong></div><div class="score"><b id="score">0 : 0</b><span id="clock">准备开场</span></div><div class="away"><small>客队</small><strong>Mountain Lanterns</strong></div></div>
-        <div class="pitch-legend"><span><i class="home-dot"></i>绿：主队 / 进攻方</span><span><i class="away-dot"></i>橙红：客队 / 防守方</span><span>⚽ 黑白：足球</span><span>亮圈：当前参与者 · 暗色：其他球员</span><span>进攻方向 →</span></div>
+        <div class="pitch-legend"><span><i class="home-dot"></i>绿：主队</span><span><i class="away-dot"></i>橙红：客队</span><span>⚽ 黑白：足球</span><span>亮圈：当前参与者 · 暗色：其他球员</span><span>每次控球归一化为向右进攻 →</span></div>
         <div class="pitch-wrap">
           <svg id="pitch" viewBox="-4 -4 130 88" role="img" aria-label="双方各十一人的合成比赛移动示意，绿色为主队，橙红色为客队">
             <defs><marker id="route-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#f0ffc0"/></marker><pattern id="grass" width="20" height="80" patternUnits="userSpaceOnUse"><rect width="10" height="80" fill="#ffffff" opacity=".025"/></pattern></defs>
@@ -24,10 +24,11 @@
           </svg>
           <span class="pitch-label">11 对 11 · 合成移动轨迹 · 非真实比赛追踪</span>
         </div>
-        <p id="action-caption" class="action-caption" aria-live="polite">点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。</p>
-        <div class="controls"><button id="play">播放片段</button><button class="secondary" id="next">下一步</button><button class="secondary" id="reset">重置</button><label>速度<select id="speed"><option value="2200">1×</option><option value="1100">2×</option><option value="550">4×</option></select></label><span id="progress">0 / 13</span></div>
-        <p class="scope">每次播放一个片段，结束自动暂停；点击“播放下一个片段”继续。统计仅覆盖已播放样例。</p>
+        <p id="action-caption" class="action-caption" aria-live="polite">比赛载入后自动开球。</p>
+        <div class="controls"><button id="play">暂停</button><button class="secondary" id="next">下一步</button><button class="secondary" id="reset">重播</button><label>速度<select id="speed"><option value="1">约 9 分钟</option><option value="2">2×</option><option value="4">4×</option></select></label><span id="progress">0 / 0</span></div>
+        <p class="scope">正常比赛约 9 分钟；第一视角视频期间暂停比赛计时，播完自动继续。数据均为合成事件，球员位置是示意关键帧。</p>
         <div id="stats" class="stats"></div>
+        <section class="commentary-live" aria-label="整场解说"><div class="section-heading"><strong>比赛解说</strong><span id="commentary-source">按当前球迷立场 · 合成事件</span></div><p id="commentary-live-text" aria-live="polite">即将开球……</p><div id="commentary-history"></div></section>
         <section id="insight" class="insight" aria-label="场边洞察">
           <div class="section-heading"><strong>场边洞察</strong><span id="insight-source">规则解读 · AI 接口待接入</span></div>
           <h3 id="insight-title">这一步，为什么值得关注？</h3>
@@ -41,8 +42,9 @@
         <p id="audience-hint" class="scope"></p><div class="pov-options"><button id="striker" class="selected">射手视角</button><button id="goalkeeper" class="secondary">门将视角</button></div>
         <div class="video-placeholder"><span class="viewfinder">⌖</span><strong id="video-title">从看台，到场上。</strong><p id="video-status" aria-live="polite">选择已发生的关键事件，准备你的专属片段。</p></div>
         <video id="highlight-video" controls playsinline hidden style="width:100%;border-radius:10px"></video><label>片段解说语言<select id="language"><option value="zh">中文</option><option value="en">English</option></select></label>
+        <button id="skip-highlight" class="secondary" hidden>跳过视频，继续比赛</button>
         <button class="primary" id="prepare" disabled>准备第一视角片段</button>
-        <p class="scope">AI 视频服务待接入；当前可预览场景和解说。</p>
+        <p class="scope">从合成比赛事件生成第一视角视频；视频服务需配置 OpenRouter Key。</p>
         <div id="result" hidden><p id="commentary"></p><details><summary>查看场景规划</summary><pre id="scene"></pre></details><button id="download" class="secondary">下载生成请求</button></div>
       </section>
       <section class="panel timeline"><div class="section-heading"><h2>比赛瞬间</h2><span>点击已解锁片段切换体验</span></div><div id="moments"></div></section>
@@ -50,6 +52,6 @@
     </div>
   </main>
   <footer>虚构球队与球员 · 合成比赛数据 · AI 场景演绎</footer>
-  <script src="/app.js" defer></script>
+  <script src="/app.js" type="module"></script>
 </body>
 </html>

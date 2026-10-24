@@ -1,7 +1,9 @@
+import {buildSchedule} from "./match_clock.mjs";
 const $ = id => document.getElementById(id);
 const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
-const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救"};
+const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
+let schedule=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
 let pitchAnimation=null, lastPitchEvent=null;
 let requestController=null;
 let insightController=null, insightKey=null;
@@ -32,8 +34,9 @@ async function updateLiveInsight(event){
       insight=await fetchInsight(false);
       if(key!==insightKey)return;
       displayLiveInsight(insight);baselineShown=true;
-      if(insight.ai_available)insight=await fetchInsight(true);
-      if(insight.generator==="ai" || !insight.ai_available)insightCache.set(key,insight);
+      const featured=data.clips.some(c=>c.trigger_event_id===event.id);
+      if(insight.ai_available && featured)insight=await fetchInsight(true);
+      insightCache.set(key,insight);
     }
     if(key!==insightKey)return;
     displayLiveInsight(insight);
@@ -82,37 +85,62 @@ function applyAudience(){
 const seen = () => data.events.slice(0,cursor);
 const unlocked = clip => seen().some(e=>e.id===clip.trigger_event_id);
 const shotFor = clip => data.events.find(e=>e.id===clip.trigger_event_id);
-function clearResult(){epoch++;requestController?.abort();busy=false;prepared=null;$("result").hidden=true;const video=$("highlight-video");video.pause();video.removeAttribute("src");video.load();video.hidden=true;$("video-status").textContent="场景已选择，准备生成请求后可预览。";}
+function clearResult(){
+  epoch++;requestController?.abort();clearTimeout(fallbackTimer);fallbackTimer=null;
+  busy=false;prepared=null;highlightResume=false;$("skip-highlight").hidden=true;$("result").hidden=true;
+  const video=$("highlight-video");video.onended=null;video.onerror=null;video.onplay=null;video.pause();video.removeAttribute("src");video.load();video.hidden=true;
+  $("video-status").textContent="场景已选择，准备生成请求后可预览。";
+}
 function updatePlayback(){
   const finished=data && cursor>=data.events.length;
-  const boundary=data && cursor>0 && data.clips.some(c=>c.event_ids.at(-1)===data.events[cursor-1].id);
-  $("play").disabled=!!finished;
-  $("play").textContent=timer?"暂停":finished?"全部片段已播完":boundary?"播放下一个片段":cursor?"继续当前片段":"播放片段";
+  $("play").disabled=!!finished || playbackMode==="highlight";
+  $("play").textContent=finished?"比赛结束":playbackMode==="playing"?"暂停":playbackMode==="highlight"?"第一视角播放中":"继续比赛";
 }
-function stop(){clearInterval(timer);timer=null;updatePlayback();}
+function stop(){clearTimeout(timer);timer=null;updatePlayback();}
+function scheduleNext(){
+  if(playbackMode!=="playing" || cursor>=data.events.length)return;
+  const delay=(schedule[Math.max(0,cursor-1)]||0)/Number($("speed").value);
+  timer=setTimeout(()=>{timer=null;tick();},delay);
+}
 function tick(){
-  if(cursor>=data.events.length){stop();return;}
+  if(cursor>=data.events.length){stop();playbackMode="finished";updatePlayback();return;}
   const event=data.events[cursor++];
   if(data.clips.some(c=>c.event_ids[0]===event.id)){selected=null;clearResult();}
   const clip=data.clips.find(c=>c.trigger_event_id===event.id);
   if(clip){selected=clip;clearResult();applyAudience();}
   render();
-  if(cursor===data.events.length || data.clips.some(c=>c.event_ids.at(-1)===event.id)){
-    stop();
-    if(audience()!=="neutral")prepareHighlight(true);
+  if(cursor===data.events.length){stop();playbackMode="finished";updatePlayback();return;}
+  if(data.clips.some(c=>c.event_ids.at(-1)===event.id)){
+    stop();playbackMode="highlight";prepareHighlight(true,true);return;
   }
+  if(playbackMode==="playing")scheduleNext();
 }
-function start(){stop();if(!data || cursor>=data.events.length)return;timer=setInterval(tick,Number($("speed").value));updatePlayback();}
+function start(){
+  stop();if(!data || cursor>=data.events.length || playbackMode==="highlight")return;
+  playbackMode="playing";
+  if(cursor===0)tick();else scheduleNext();
+  updatePlayback();
+}
+function renderCommentary(){
+  const lines=data.commentary?.[audience()]||[];
+  const spoken=lines.slice(0,cursor).filter(line=>line.text);
+  const latest=spoken.at(-1);
+  $("commentary-live-text").textContent=latest?.text||"即将开球……";
+  $("commentary-history").replaceChildren(...spoken.slice(-4,-1).reverse().map(line=>{
+    const row=document.createElement("div");row.textContent=`${Math.floor(line.match_second/60)}′ ${line.text}`;return row;
+  }));
+}
 function render(){
   updatePlayback();
   applyAudience();
   const events=seen(), shots=events.filter(e=>e.type.name==="Shot"), goals=shots.filter(e=>e.shot.outcome.name==="Goal");
   const last=events.at(-1);
-  $("score").textContent=`${goals.length} : 0`;
-  $("clock").textContent=last?`${last.minute}′ ${String(last.second).padStart(2,"0")}″ · 片段回放`:"准备开场";
+  const homeId=data.match.home_team.id;
+  $("score").textContent=`${goals.filter(e=>e.team.id===homeId).length} : ${goals.filter(e=>e.team.id!==homeId).length}`;
+  $("clock").textContent=last?`${last.minute}′ ${String(last.second).padStart(2,"0")}″ · 90 分钟合成比赛`:"准备开场";
   $("progress").textContent=`${cursor} / ${data.events.length}`;
   const onTarget=shots.filter(e=>["Goal","Saved"].includes(e.shot.outcome.name)).length;
-  $("stats").replaceChildren(...[[shots.length,"样例射门"],[onTarget,"样例射正"],[events.filter(e=>e.type.name==="Pass").length,"样例传球"]].map(([value,label])=>{
+  $("stats").replaceChildren(...[[shots.length,"射门"],[onTarget,"射正"],[events.filter(e=>e.type.name==="Pass").length,"传球"]].map(([value,label])=>{
     const item=document.createElement("div");item.className="stat";
     const number=document.createElement("b");number.textContent=value;
     const text=document.createElement("span");text.textContent=label;item.append(number,text);return item;
@@ -124,17 +152,26 @@ function render(){
     button.disabled=!unlocked(clip);
     const title=document.createElement("span");title.textContent=`${shot.minute}′ · ${labels[shot.shot.outcome.name]}`;
     const sub=document.createElement("small");sub.textContent=unlocked(clip)?`${shot.player.name} → 进入视角`:"等待比赛推进";
-    button.append(title,sub);button.onclick=()=>{stop();selected=clip;clearResult();render();if(audience()!=="neutral")prepareHighlight(true);};return button;
+    button.append(title,sub);button.onclick=()=>{stop();playbackMode="paused";selected=clip;clearResult();render();prepareHighlight(true,false);};return button;
   }));
-  $("recap").textContent=available.length?available.map(c=>{const e=shotFor(c);return `${e.minute} 分钟，${e.player.name}${({Goal:"射门得分","Off T":"射门偏出",Saved:"射门被扑出"})[e.shot.outcome.name]}。`;}).join(" ")+(cursor===data.events.length?" 三个样例片段已播放完毕。":""):"关键事件发生后，这里会自动整理回顾。";
+  $("recap").textContent=available.length?available.map(c=>{const e=shotFor(c);return `${e.minute} 分钟，${e.player.name}${({Goal:"射门得分","Off T":"射门偏出",Saved:"射门被扑出"})[e.shot.outcome.name]}。`;}).join(" ")+(cursor===data.events.length?" 比赛结束。":""):"关键事件发生后，这里会自动整理回顾。";
   $("event-log").replaceChildren(...events.slice(-6).reverse().map(e=>{const p=document.createElement("div");p.textContent=`${e.minute}:${String(e.second).padStart(2,"0")} · ${e.player.name} · ${eventLabels[e.type.name]}`;return p;}));
-  $("prepare").disabled=busy || !selected || !unlocked(selected);
+  $("prepare").disabled=busy || highlightResume || !selected || !unlocked(selected);
   $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"射手":"门将"}视角`:"等待关键事件";
+  renderCommentary();
   updateLiveInsight(last);
   renderPitch(last);
 }
 function pitchState(event){
   const clip=data.clips.find(c=>c.event_ids.includes(event.id));
+  if(!clip){
+    const active=new Set([event.player.id]);
+    if(event.pass)active.add(event.pass.recipient.id);
+    return {points:event.tracking.start.map(p=>({
+      player:data.match.players.find(entry=>entry.player.id===p.player_id).player,
+      location:p.location,teammate:p.team_id===data.match.home_team.id
+    })),active};
+  }
   const chain=clip.event_ids.map(id=>data.events.find(e=>e.id===id));
   const shot=shotFor(clip);
   const positions=new Map([
@@ -181,7 +218,7 @@ function pitchState(event){
 function renderPitch(event){
   cancelAnimationFrame(pitchAnimation);
   const group=$("markers");group.replaceChildren();
-  $("next").disabled=cursor>=data.events.length;
+  $("next").disabled=cursor>=data.events.length || playbackMode==="highlight";
   if(!event){lastPitchEvent=null;$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
   const shouldAnimate=lastPitchEvent!==event.id;
   lastPitchEvent=event.id;
@@ -222,7 +259,7 @@ function renderPitch(event){
   Object.entries({r:1.6,fill:"#fff",stroke:"#101b17","stroke-width":".3"}).forEach(([k,v])=>disc.setAttribute(k,v));football.append(disc);
   const patch=document.createElementNS(football.namespaceURI,"path");patch.setAttribute("d","M0 -.55 .52 -.17 .32 .45 -.32 .45 -.52 -.17Z");patch.setAttribute("fill","#162019");football.append(patch);
   if(event.tracking){
-    const began=performance.now(),duration=shouldAnimate?Number($("speed").value)*.85:0;
+    const began=performance.now(),duration=shouldAnimate?Math.min(900,Math.max(100,(schedule[cursor-1]||200)/Number($("speed").value)*.75)):0;
     function animate(now){
       const t=duration?Math.min((now-began)/duration,1):1;
       movingPlayers.forEach(({wrapper,from,to})=>wrapper.setAttribute("transform",`translate(${(to[0]-from[0])*t} ${(to[1]-from[1])*t})`));
@@ -232,23 +269,63 @@ function renderPitch(event){
     }
     animate(began);
   }
-  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：传球。虚线连接传球起点与落点。`
+  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：${event.pass.outcome.name==="Complete"?"传球到位":"传球被拦截"}。虚线连接起点与落点。`
     :event.type.name==="Carry"?`${event.player.name} 带球推进，足球标记在本次推进终点。`
     :event.type.name==="Shot"?`${event.player.name} 起脚射门 → ${labels[event.shot.outcome.name]}。射手与门将高亮，足球沿射门路线移动。`
     :event.type.name==="Goal Keeper"?`${event.player.name} 完成扑救。门将和足球位于扑救位置，其余球员保留模拟站位。`
+    :event.type.name==="Full Time"?"90 分钟比赛结束。"
+    :event.type.name==="Interception"?`${event.player.name} 拦截了对方传球。`
+    :event.type.name==="Pressure"?`${event.player.name} 对持球者施压。`
+    :event.type.name==="Tackle"?`${event.player.name} 完成抢断，球权转换。`
     :`${event.player.name} 接到传球，准备向球门推进。`;
   $("action-caption").textContent=`${event.minute}′ ${eventLabels[event.type.name]} · ${action}`;
 }
-$("next").onclick=()=>{stop();tick();};
-$("play").onclick=()=>timer?stop():start();
-$("reset").onclick=()=>{stop();cursor=0;selected=null;clearResult();$("video-status").textContent="选择已发生的关键事件，准备你的专属片段。";render();};
-$("speed").onchange=()=>{if(timer)start();};
+$("next").onclick=()=>{stop();playbackMode="paused";tick();updatePlayback();};
+$("play").onclick=()=>{if(playbackMode==="playing"){stop();playbackMode="paused";updatePlayback();}else start();};
+$("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;clearResult();render();start();};
+$("speed").onchange=()=>{if(playbackMode==="playing"){stop();scheduleNext();}};
 $("mode").onchange=()=>render();
-$("audience").onchange=()=>{clearResult();applyAudience();render();if(selected&&audience()!=="neutral")prepareHighlight(true);};
-$("language").onchange=()=>{clearResult();if(selected&&audience()!=="neutral")prepareHighlight(true);};
-["striker","goalkeeper"].forEach(id=>$(id).onclick=()=>{pov=id;$(id).className="selected";$(id==="striker"?"goalkeeper":"striker").className="secondary";clearResult();render();});
-async function prepareHighlight(automatic=false){
-  if(!selected||busy)return;stop();busy=true;const version=++epoch;
+$("audience").onchange=()=>{
+  const resume=highlightResume;clearResult();applyAudience();render();
+  if(resume)prepareHighlight(true,true);
+};
+$("language").onchange=()=>{
+  const resume=highlightResume;clearResult();render();
+  if(resume)prepareHighlight(true,true);
+};
+["striker","goalkeeper"].forEach(id=>$(id).onclick=()=>{
+  pov=id;$(id).className="selected";$(id==="striker"?"goalkeeper":"striker").className="secondary";
+  const resume=highlightResume;clearResult();render();if(resume)prepareHighlight(true,true);
+});
+function resumeMatch(version){
+  if(version!==epoch || !highlightResume)return;
+  clearResult();
+  playbackMode="paused";start();
+}
+function resumeAfterDelay(version){
+  if(!highlightResume || version!==epoch)return;
+  fallbackTimer=setTimeout(()=>resumeMatch(version),2000);
+}
+async function showVideo(job,version,automatic){
+  const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
+  $("video-status").textContent="第一视角视频已就绪。";
+  if(highlightResume){
+    video.onended=()=>resumeMatch(version);
+    video.onerror=()=>{$("video-status").textContent="视频播放失败，正在继续比赛。";resumeAfterDelay(version);};
+    video.onplay=()=>{clearTimeout(fallbackTimer);fallbackTimer=null;};
+  }
+  if(automatic){
+    try{await video.play();}
+    catch{if(version===epoch){
+      $("video-status").textContent="视频已就绪，请点击播放；若未播放，15 秒后继续比赛。";
+      if(highlightResume)fallbackTimer=setTimeout(()=>resumeMatch(version),15000);
+    }}
+  }
+}
+$("skip-highlight").onclick=()=>resumeMatch(epoch);
+async function prepareHighlight(automatic=false,resume=false){
+  if(!selected||busy)return;stop();if(!resume)playbackMode="paused";busy=true;highlightResume=resume;
+  $("skip-highlight").hidden=!resume;const version=++epoch;
   applyAudience();
   requestController=new AbortController();
   $("error").hidden=true;$("video-status").textContent="正在准备场景和生成请求…";render();
@@ -266,15 +343,12 @@ async function prepareHighlight(automatic=false){
       pollVideo(body.job_id,version,automatic);
     }else if(job.status==="not_submitted"){
       $("video-status").textContent="未配置 OPENROUTER_API_KEY；已准备好视频提示词。";
+      resumeAfterDelay(version);
     }
     if(job.status==="succeeded" && job.media_url){
-      const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
-      $("video-status").textContent="第一视角视频已就绪。";
-      if(automatic){
-        try{await video.play();}catch{if(version===epoch)$("video-status").textContent="视频已就绪，点击播放开始观看。";}
-      }
+      await showVideo(job,version,automatic);
     }
-  }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，请重试。";}}
+  }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，即将继续比赛。";resumeAfterDelay(version);}}
   finally{if(version===epoch){busy=false;render();}}
 }
 async function pollVideo(jobId,version,automatic){
@@ -287,20 +361,26 @@ async function pollVideo(jobId,version,automatic){
       if(version!==epoch)return;
       const job=body.video_job;
       prepared["video_job.json"]=job;
-      if(job.status==="failed"){$("video-status").textContent=`视频生成失败：${job.error||"未知错误"}`;return;}
+      if(job.status==="failed"){$("video-status").textContent=`视频生成失败：${job.error||"未知错误"}`;resumeAfterDelay(version);return;}
       if(job.status==="succeeded" && job.media_url){
-        const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
-        $("video-status").textContent="第一视角视频已就绪。";
-        if(automatic){try{await video.play();}catch{if(version===epoch)$("video-status").textContent="视频已就绪，点击播放开始观看。";}}
+        await showVideo(job,version,automatic);
         return;
       }
       $("video-status").textContent=job.status==="queued"?"视频任务排队中……":"AI 正在生成第一视角视频……";
-    }catch(error){if(version===epoch && error.name!=="AbortError")$("video-status").textContent=`视频状态查询失败：${error.message}`;return;}
+    }catch(error){if(version===epoch && error.name!=="AbortError"){$("video-status").textContent=`视频状态查询失败：${error.message}`;resumeAfterDelay(version);}return;}
   }
-  if(version===epoch)$("video-status").textContent="生成时间较长，请重新选择片段查看任务进度。";
+  if(version===epoch){$("video-status").textContent="视频等待超时，即将继续比赛。";resumeAfterDelay(version);}
 }
 $("prepare").onclick=()=>prepareHighlight(false);
 $("download").onclick=()=>{if(!prepared)return;const url=URL.createObjectURL(new Blob([JSON.stringify(prepared["video_request.json"],null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="video-request.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-fetch("/api/match").then(r=>{if(!r.ok)throw Error("无法读取比赛数据");return r.json();}).then(body=>{
-  data=body;render();
-}).catch(error=>{$("error").textContent=error.message;$("error").hidden=false;["play","reset","prepare"].forEach(id=>$(id).disabled=true);});
+async function loadMatch(){
+  stop();clearResult();insightController?.abort();insightKey=null;insightCache.clear();
+  $("error").hidden=true;
+  try{
+    const response=await fetch("/api/match");
+    const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
+    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;
+    playbackMode="paused";render();start();
+  }catch(error){$("error").textContent=error.message;$("error").hidden=false;}
+}
+loadMatch();

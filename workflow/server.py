@@ -1,9 +1,12 @@
-"""Local application server. Run: python -m workflow.server"""
+"""Local application server. Run: python -m workflow.server [--seed 7]"""
 
+import argparse
 import json
 import re
 import select
 import socket
+import threading
+from functools import lru_cache
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from uuid import UUID, uuid4
@@ -12,11 +15,35 @@ from workflow.pipeline import ROOT, read, run
 from workflow.insights import build_insight
 from workflow.openrouter_writer import configured_writer
 from workflow.openrouter_video import configured_video_provider, VideoServiceError
+from scripts.generate_match import save as save_match
 
-DATA = ROOT / "data" / "synthetic"
 WEB = ROOT / "web"
 INSIGHT_WRITER = configured_writer()
 VIDEO_PROVIDER = configured_video_provider()
+MATCH_LOCK = threading.Lock()
+MATCH_SEED = 7
+
+
+def match_data():
+    seed = MATCH_SEED
+    if type(seed) is not int or not 0 <= seed <= 1_000_000_000:
+        raise ValueError("Invalid match seed")
+    folder = ROOT / "data" / "matches" / f"seed-{seed}"
+    with MATCH_LOCK:
+        if (not all((folder / name).exists() for name in ("match.json", "events.json", "clips.json", "commentary.json"))
+                or read(folder / "match.json").get("generator_version") != 4):
+            save_match(seed, folder)
+    return folder
+
+
+@lru_cache(maxsize=4)
+def cached_match_bundle(folder):
+    match, events, clips = (read(folder / name) for name in ("match.json", "events.json", "clips.json"))
+    return match, events, clips, read(folder / "commentary.json")
+
+
+def match_bundle(folder):
+    return cached_match_bundle(folder)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -96,14 +123,17 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(502, {"error": str(error)})
             return self.respond(200, {"job_id": local_id, "video_job": job})
         if path == "/api/match":
-            return self.respond(200, {
-                "match": read(DATA / "match.json"),
-                "events": read(DATA / "events.json"),
-                "clips": read(DATA / "clips.json"),
-            })
+            try:
+                source = match_data()
+            except ValueError:
+                return self.respond(400, {"error": "Invalid match seed"})
+            match, events, clips, commentary = match_bundle(source)
+            return self.respond(200, {"match": match, "events": events, "clips": clips,
+                                      "commentary": commentary})
         assets = {
             "/": ("index.html", "text/html; charset=utf-8"),
             "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+            "/match_clock.mjs": ("match_clock.mjs", "text/javascript; charset=utf-8"),
             "/style.css": ("style.css", "text/css; charset=utf-8"),
         }
         if path in assets:
@@ -124,6 +154,8 @@ class Handler(BaseHTTPRequestHandler):
             request = json.loads(self.rfile.read(size))
             if not isinstance(request, dict):
                 raise ValueError("Expected JSON object")
+            source = match_data()
+            match, events, clips, _ = match_bundle(source)
             if self.path == "/api/insights":
                 use_ai = request.get("use_ai", True)
                 if not isinstance(use_ai, bool):
@@ -137,7 +169,7 @@ class Handler(BaseHTTPRequestHandler):
                             return underlying.generate(payload, cancelled=handler.disconnected)
                     writer = CancellableWriter()
                 insight = build_insight(
-                    read(DATA / "match.json"), read(DATA / "events.json"),
+                    match, events,
                     request.get("event_id"), request.get("audience", "neutral"),
                     request.get("mode", "casual"),
                     writer=writer,
@@ -146,12 +178,12 @@ class Handler(BaseHTTPRequestHandler):
                 if INSIGHT_WRITER is not None and not use_ai:
                     insight["generator_label"] = "规则解读 · AI 正在生成"
                 return self.respond(200, insight)
-            if request.get("clip_id") not in {item["id"] for item in read(DATA / "clips.json")}:
+            if request.get("clip_id") not in {item["id"] for item in clips}:
                 raise ValueError("Unknown clip")
             job_id = str(uuid4())
             artifacts = run(
                 request["clip_id"], request.get("pov", "striker"),
-                request.get("language", "zh"), DATA, ROOT / "outputs" / job_id,
+                request.get("language", "zh"), source, ROOT / "outputs" / job_id,
                 audience=request.get("audience", "neutral"),
                 provider=VIDEO_PROVIDER,
             )
@@ -165,8 +197,14 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--seed", type=int, default=7, help="deterministic match seed (default: 7)")
+    args = parser.parse_args()
+    MATCH_SEED = args.seed
+    match_data()
     server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
     print("Inside the Moment: http://127.0.0.1:8000", flush=True)
+    print(f"Synthetic match seed: {MATCH_SEED}", flush=True)
     print("Insights: OpenRouter enabled" if INSIGHT_WRITER else "Insights: rule baseline (OpenRouter not configured)", flush=True)
     print("Video: OpenRouter enabled" if VIDEO_PROVIDER else "Video: dry run (OpenRouter not configured)", flush=True)
     try:

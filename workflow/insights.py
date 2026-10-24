@@ -49,12 +49,18 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
         progress = (target[0]-event["location"][0])*scale[0]
         facts.update(pass_distance_m=round(distance(event["location"], target), 1),
                      forward_progress_m=round(progress, 1),
-                     recipient=event["pass"]["recipient"]["name"])
+                     recipient=event["pass"]["recipient"]["name"],
+                     pass_complete=event["pass"]["outcome"]["name"] == "Complete")
         title = "把进攻向前送"
         detail = f"这脚传球向球门方向推进约 {progress:.1f} 米，找到 {facts['recipient']}。"
         why = "它让接球者在更靠近球门的位置处理下一步进攻。"
         if progress <= 0:
             title, why = "重新组织进攻", "这脚传球没有直接向球门推进，球权交给队友重新组织。"
+        if not facts["pass_complete"]:
+            title = "传球被拦截"
+            detail = f"{facts['actor']} 的传球没有找到 {facts['recipient']}。"
+            why = "这次推进在传球环节中断，球权转给对手。"
+            home_voice, away_voice = "哎呀，这脚传丢了！", "断下来了！这次威胁停住了。"
         home_voice, away_voice = "我们的推进接上了，看看接球后怎么处理。", "对手又向前推进了一步，我们需要留意接球者。"
     elif kind == "Ball Receipt*":
         prior_pass = next((item for item in reversed(chain[:-1]) if item.get("pass")), None)
@@ -121,7 +127,7 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
         home_voice = away_voice = ""
     tone = "" if audience == "neutral" else home_voice if favor_attack else away_voice
     if audience != "neutral":
-        if kind == "Pass":
+        if kind == "Pass" and facts["pass_complete"]:
             why = ("重点看接球后的处理：我们的球已经向前转移，接下来能否继续推进？" if favor_attack
                    else "重点看对方接球者：这次向前传递后，他会成为我们防守需要关注的人。") if facts["forward_progress_m"] > 0 else why
         elif kind == "Carry" and facts["goal_distance_reduction_m"] > 0:
@@ -138,9 +144,12 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
     text = " ".join(part for part in (tone, detail, why) if part)
     if mode == "casual":
         if kind == "Pass":
-            opening = "往前送！" if facts["forward_progress_m"] > 0 else "交给队友，重新组织。"
-            reaction = "看看接下来怎么处理。" if audience == "neutral" else "我们接着往前打！" if favor_attack else "注意对手接下来这一步！"
-            text = f"{opening}球交给 {facts['recipient']}，{reaction}"
+            if facts["pass_complete"]:
+                opening = "往前送！" if facts["forward_progress_m"] > 0 else "交给队友，重新组织。"
+                reaction = "看看接下来怎么处理。" if audience == "neutral" else "我们接着往前打！" if favor_attack else "注意对手接下来这一步！"
+                text = f"{opening}球交给 {facts['recipient']}，{reaction}"
+            else:
+                text = "传球被拦下来了！这次进攻在这里断掉。" if audience == "neutral" else "哎呀，传丢了！这次进攻断了。" if favor_attack else "断下来了！这次守住了。"
         elif kind == "Ball Receipt*":
             reaction = "接下来可以继续组织进攻。" if audience == "neutral" else "球到我们脚下了，看下一步怎么打！" if favor_attack else "对手接住了，得留意他的下一步！"
             text = f"{facts['actor']} 接到了！{reaction}"
@@ -160,7 +169,8 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
             text = calls[facts["outcome"]][0 if audience == "neutral" else 1 if favor_attack else 2] + observation
     if mode == "analyst" and "goal_opening_angle_degrees" in facts:
         text += f" 从射门点看，两门柱夹角约 {facts['goal_opening_angle_degrees']}°。"
-    event_names = {"Pass": "传球", "Ball Receipt*": "接球", "Carry": "带球推进", "Shot": "射门", "Goal Keeper": "扑救"}
+    event_names = {"Pass": "传球", "Ball Receipt*": "接球", "Carry": "带球推进", "Shot": "射门", "Goal Keeper": "扑救",
+                   "Interception": "拦截", "Pressure": "施压", "Tackle": "抢断", "Full Time": "全场结束"}
     evidence = [{"event_id": item["id"], "label": f"{item['minute']}′ {item['player']['name']} · {event_names.get(item['type']['name'], item['type']['name'])}"} for item in chain]
     result = {
         "schema": "pilot.live-insight.v1", "event_id": event_id,
