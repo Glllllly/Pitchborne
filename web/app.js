@@ -1,10 +1,12 @@
 import {buildSchedule} from "./match_clock.mjs";
+import {interpolatePose} from "./pitch_motion.mjs";
 const $ = id => document.getElementById(id);
 const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
 const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
 let schedule=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
-let pitchAnimation=null, lastPitchEvent=null;
+let pitchAnimation=null, lastPitchEvent=null, pitchBall=null;
+const pitchPositions=new Map();
 const prefetched=new Map();
 let insightController=null, insightKey=null;
 const insightCache=new Map();
@@ -224,7 +226,7 @@ function renderPitch(event){
   cancelAnimationFrame(pitchAnimation);
   const group=$("markers");group.replaceChildren();
   $("next").disabled=cursor>=data.events.length || playbackMode==="highlight";
-  if(!event){lastPitchEvent=null;$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
+  if(!event){lastPitchEvent=null;pitchBall=null;pitchPositions.clear();$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
   const shouldAnimate=lastPitchEvent!==event.id;
   lastPitchEvent=event.id;
   const svg=(tag,attrs,text)=>{
@@ -244,7 +246,9 @@ function renderPitch(event){
   }
   const movingPlayers=[];
   points.forEach(point=>{
-    point={...point,location:displayPoint(point.location)};
+    const start=displayPoint(point.location);
+    const from=shouldAnimate?(pitchPositions.get(point.player.id)||start):start;
+    point={...point,location:from};
     const firstChild=group.children.length;
     const isActive=active.has(point.player.id);
     if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:2,fill:"none",stroke:point.teammate?"#c4f277":"#f4ae8e","stroke-width":".22",opacity:".85"});
@@ -260,7 +264,7 @@ function renderPitch(event){
     const wrapper=svg("g",{"data-moving-player":point.player.id});
     children.forEach(child=>wrapper.append(child));
     const target=event.tracking?.end.find(p=>p.player_id===point.player.id)?.location;
-    movingPlayers.push({wrapper,from:point.location,to:target?displayPoint(target):point.location});
+    movingPlayers.push({wrapper,id:point.player.id,from,start,to:target?displayPoint(target):start});
   });
   const ball=displayPoint(end||event.location);
   const football=svg("g",{"data-role":"football",transform:`translate(${ball[0]} ${ball[1]})`});
@@ -268,12 +272,19 @@ function renderPitch(event){
   Object.entries({r:1.6,fill:"#fff",stroke:"#101b17","stroke-width":".3"}).forEach(([k,v])=>disc.setAttribute(k,v));football.append(disc);
   const patch=document.createElementNS(football.namespaceURI,"path");patch.setAttribute("d","M0 -.55 .52 -.17 .32 .45 -.32 .45 -.52 -.17Z");patch.setAttribute("fill","#162019");football.append(patch);
   if(event.tracking){
-    const began=performance.now(),duration=shouldAnimate?Math.min(900,Math.max(100,(schedule[cursor-1]||200)/Number($("speed").value)*.75)):0;
+    const began=performance.now();
+    const duration=shouldAnimate?Math.max(100,(schedule[cursor-1]||200)/Number($("speed").value)*.94):0;
+    const ballStart=displayPoint(event.tracking.ball_start),ballEnd=displayPoint(event.tracking.ball_end);
+    const ballFrom=shouldAnimate?(pitchBall||ballStart):ballStart;
     function animate(now){
       const t=duration?Math.min((now-began)/duration,1):1;
-      movingPlayers.forEach(({wrapper,from,to})=>wrapper.setAttribute("transform",`translate(${(to[0]-from[0])*t} ${(to[1]-from[1])*t})`));
-      const a=displayPoint(event.tracking.ball_start),b=displayPoint(event.tracking.ball_end);
-      football.setAttribute("transform",`translate(${a[0]+(b[0]-a[0])*t} ${a[1]+(b[1]-a[1])*t})`);
+      movingPlayers.forEach(({wrapper,id,from,start,to})=>{
+        const current=interpolatePose(from,start,to,t);
+        pitchPositions.set(id,current);
+        wrapper.setAttribute("transform",`translate(${current[0]-from[0]} ${current[1]-from[1]})`);
+      });
+      pitchBall=interpolatePose(ballFrom,ballStart,ballEnd,t);
+      football.setAttribute("transform",`translate(${pitchBall[0]} ${pitchBall[1]})`);
       if(t<1)pitchAnimation=requestAnimationFrame(animate);
     }
     animate(began);
@@ -358,7 +369,7 @@ function warmUpcoming(){
 }
 $("next").onclick=()=>{stop();playbackMode="paused";tick();updatePlayback();};
 $("play").onclick=()=>{if(playbackMode==="playing"){stop();playbackMode="paused";updatePlayback();}else start();};
-$("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;clearResult();render();start();};
+$("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;lastPitchEvent=null;pitchBall=null;pitchPositions.clear();clearResult();render();start();};
 $("speed").onchange=()=>{if(playbackMode==="playing"){stop();scheduleNext();}};
 $("mode").onchange=()=>render();
 $("audience").onchange=()=>{
@@ -434,7 +445,7 @@ async function loadMatch(){
   try{
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
-    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;
+    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;pitchBall=null;pitchPositions.clear();
     playbackMode="paused";render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
       ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"

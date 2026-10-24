@@ -13,7 +13,7 @@
     <div class="layout">
       <section class="match-panel panel">
         <div class="scoreboard"><div><small>主队</small><strong>Harbor Comets</strong></div><div class="score"><b id="score">0 : 0</b><span id="clock">准备开场</span></div><div class="away"><small>客队</small><strong>Mountain Lanterns</strong></div></div>
-        <div class="pitch-legend"><span><i class="home-dot"></i>绿：主队</span><span><i class="away-dot"></i>橙红：客队</span><span>⚽ 黑白：足球</span><span>亮圈：当前参与者 · 暗色：其他球员</span><span>每次控球归一化为向右进攻 →</span></div>
+        <div class="pitch-legend"><span><i class="home-dot"></i>绿：主队</span><span><i class="away-dot"></i>橙红：客队</span><span>⚽ 黑白：足球</span><span>亮圈：当前参与者 · 暗色：其他球员</span><span>主队向右、客队向左进攻</span></div>
         <div class="pitch-wrap">
           <svg id="pitch" viewBox="-4 -4 130 88" role="img" aria-label="双方各十一人的合成比赛移动示意，绿色为主队，橙红色为客队">
             <defs><marker id="route-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#f0ffc0"/></marker><pattern id="grass" width="20" height="80" patternUnits="userSpaceOnUse"><rect width="10" height="80" fill="#ffffff" opacity=".025"/></pattern></defs>
@@ -26,7 +26,7 @@
         </div>
         <p id="action-caption" class="action-caption" aria-live="polite">比赛载入后自动开球。</p>
         <div class="controls"><button id="play">暂停</button><button class="secondary" id="next">下一步</button><button class="secondary" id="reset">重播</button><label>速度<select id="speed"><option value="1">约 9 分钟</option><option value="2">2×</option><option value="4">4×</option></select></label><span id="progress">0 / 0</span></div>
-        <p class="scope">正常比赛约 9 分钟，动画与文字解说随事件推进；视频在后台生成，尚未完成时不耽误比赛。数据均为合成事件，球员位置是示意关键帧。</p>
+        <p class="scope">正常比赛约 9 分钟，球员位置在合成事件关键帧间平滑过渡，文字解说随事件推进；视频在后台生成。位置为模拟轨迹，并非真实追踪。</p>
         <div id="stats" class="stats"></div>
         <section class="commentary-live" aria-label="整场解说"><div class="section-heading"><strong>比赛解说</strong><span id="commentary-source">按当前球迷立场 · 合成事件</span></div><p id="commentary-live-text" aria-live="polite">即将开球……</p><div id="commentary-history"></div></section>
         <section id="insight" class="insight" aria-label="场边洞察">
