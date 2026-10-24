@@ -7,6 +7,7 @@ let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, bus
 let schedule=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
 let pitchAnimation=null, lastPitchEvent=null, pitchBall=null;
 const pitchPositions=new Map();
+let commentaryAudience=null, commentaryCursor=0;
 const prefetched=new Map();
 let insightController=null, insightKey=null;
 const insightCache=new Map();
@@ -90,7 +91,7 @@ const shotFor = clip => data.events.find(e=>e.id===clip.trigger_event_id);
 function clearResult(){
   epoch++;clearTimeout(fallbackTimer);fallbackTimer=null;
   busy=false;prepared=null;highlightResume=false;$("skip-highlight").hidden=true;$("result").hidden=true;
-  const video=$("highlight-video");video.onended=null;video.onerror=null;video.onplay=null;video.pause();video.removeAttribute("src");video.load();video.hidden=true;
+  const video=$("highlight-video");video.onended=null;video.onerror=null;video.onplay=null;video.pause();video.removeAttribute("src");video.load();video.hidden=true;$("pov-stage").hidden=true;
   $("video-status").textContent="场景已选择，准备生成请求后可预览。";
 }
 function updatePlayback(){
@@ -130,12 +131,22 @@ function start(){
 }
 function renderCommentary(){
   const lines=data.commentary?.[audience()]||[];
-  const spoken=lines.slice(0,cursor).filter(line=>line.text);
-  const latest=spoken.at(-1);
-  $("commentary-live-text").textContent=latest?.text||"即将开球……";
-  $("commentary-history").replaceChildren(...spoken.slice(-4,-1).reverse().map(line=>{
-    const row=document.createElement("div");row.textContent=`${Math.floor(line.match_second/60)}′ ${line.text}`;return row;
-  }));
+  const feed=$("commentary-history");
+  if(commentaryAudience!==audience() || cursor<commentaryCursor){
+    feed.replaceChildren();commentaryCursor=Math.max(0,cursor-28);commentaryAudience=audience();
+  }
+  for(let index=commentaryCursor;index<cursor;index++){
+    const line=lines[index];if(!line?.text)continue;
+    const row=document.createElement("div");row.className="commentary-card";
+    if(data.events[index]?.type.name==="Shot")row.classList.add("key-moment");
+    const time=document.createElement("time");time.textContent=`${Math.floor(line.match_second/60)}′`;
+    const text=document.createElement("p");text.textContent=line.text;
+    row.append(time,text);feed.append(row);
+  }
+  commentaryCursor=cursor;
+  while(feed.children.length>50)feed.firstChild.remove();
+  feed.scrollTop=feed.scrollHeight;
+  $("commentary-live-text").textContent=lines.slice(0,cursor).reverse().find(line=>line.text)?.text||"即将开球……";
 }
 function render(){
   updatePlayback();
@@ -394,7 +405,7 @@ function resumeAfterDelay(version){
   fallbackTimer=setTimeout(()=>resumeMatch(version),2000);
 }
 async function showVideo(job,version,automatic){
-  const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
+  const video=$("highlight-video");video.src=job.media_url;video.hidden=false;$("pov-stage").hidden=false;
   $("video-status").textContent="第一视角视频已就绪。";
   if(highlightResume){
     video.onended=()=>resumeMatch(version);
@@ -445,7 +456,7 @@ async function loadMatch(){
   try{
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
-    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;pitchBall=null;pitchPositions.clear();
+    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;
     playbackMode="paused";render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
       ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"
