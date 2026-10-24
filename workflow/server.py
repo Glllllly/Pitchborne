@@ -31,7 +31,7 @@ def match_data():
     folder = ROOT / "data" / "matches" / f"seed-{seed}"
     with MATCH_LOCK:
         if (not all((folder / name).exists() for name in ("match.json", "events.json", "clips.json", "commentary.json"))
-                or read(folder / "match.json").get("generator_version") != 4):
+                or read(folder / "match.json").get("generator_version") != 5):
             save_match(seed, folder)
     return folder
 
@@ -129,7 +129,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond(400, {"error": "Invalid match seed"})
             match, events, clips, commentary = match_bundle(source)
             return self.respond(200, {"match": match, "events": events, "clips": clips,
-                                      "commentary": commentary})
+                                      "commentary": commentary,
+                                      "video_available": VIDEO_PROVIDER is not None})
         assets = {
             "/": ("index.html", "text/html; charset=utf-8"),
             "/app.js": ("app.js", "text/javascript; charset=utf-8"),

@@ -3,6 +3,7 @@
 import argparse
 import copy
 import json
+import math
 import random
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
@@ -11,6 +12,11 @@ from workflow.pipeline import ROOT
 from workflow.match_commentary import build_tracks
 
 SAMPLE = ROOT / "data" / "synthetic" / "match.json"
+FORMATION = {
+    1: (6, 40), 2: (30, 11), 3: (27, 31), 4: (27, 49), 5: (30, 69),
+    6: (46, 40), 7: (57, 27), 8: (57, 53), 9: (76, 12),
+    10: (82, 40), 11: (76, 68),
+}
 
 
 def clamp(value, low, high):
@@ -24,12 +30,13 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 4
+    match["generator_version"] = 5
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"
     match["tracking"]["type"] = "synthetic_event_keyframes"
-    match["tracking"]["limitations"] = "Schematic positions within each event; no continuous player tracking, collision or offside model."
+    match["tracking"]["limitations"] = "Role-based 4-3-3 event snapshots; no continuous optical tracking, collision or offside model."
+    match["coordinate_system"]["display_orientation"] = "home attacks right; away attacks left; away event coordinates rotate 180 degrees for display"
     roster = match["players"]
     teams = [match["home_team"], match["away_team"]]
     by_team = {team["id"]: [p for p in roster if p["team_id"] == team["id"]] for team in teams}
@@ -46,19 +53,27 @@ def generate(seed):
         active = event["player"]["id"]
         receiver = event.get("pass", {}).get("recipient", {}).get("id")
         x, y = event["location"]
+        # Locations are expressed in the acting team's attacking direction.
+        # Build each side in its own 4-3-3, then rotate the defending side.
+        anchor = (x, y)
         points = []
         for entry in roster:
             pid = entry["player"]["id"]
             same = entry["team_id"] == own
             shirt = entry["shirt_number"]
-            if entry["position"] == "GK":
-                point = [6 if same else 117, 40]
+            base_x, base_y = FORMATION[shirt]
+            ball_x, ball_y = anchor if same else (120 - x, 80 - y)
+            if shirt == 1:
+                own_x = clamp(6 + max(0, ball_x - 55) * .10, 3, 13)
+                own_y = clamp(40 + (ball_y - 40) * .08, 36, 44)
             else:
-                row = (shirt - 2) // 3
-                lane = (shirt - 2) % 3
-                px = (max(15, x - 35) + row * 14) if same else (min(111, x + 19) + row * 3)
-                py = (17 + lane * 23 + (y - 40) * .22) if same else (18 + lane * 22 + (y - 40) * .16)
-                point = [clamp(px, 2, 118), clamp(py, 2, 78)]
+                shift = clamp((ball_x - 60) * .38, -17, 17)
+                own_x = clamp(base_x + shift, 11, 110)
+                own_y = clamp(base_y + (ball_y - 40) * .12, 6, 74)
+                # Small stable offsets stop each line looking ruler-straight.
+                own_x = clamp(own_x + math.sin(pid * .17 + event["index"] * .11) * 1.3, 10, 110)
+                own_y = clamp(own_y + math.cos(pid * .13 + event["index"] * .09) * 1.1, 5, 75)
+            point = [own_x, own_y] if same else [clamp(120 - own_x, 2, 118), clamp(80 - own_y, 2, 78)]
             if pid == active:
                 point = list(event["location"])
             elif pid == receiver:
@@ -67,7 +82,8 @@ def generate(seed):
             if pid == active and event["type"]["name"] == "Carry":
                 end = list(target[:2])
             elif pid != receiver and pid != active and entry["position"] != "GK":
-                end = [clamp(point[0] + (.4 if same else -.3), 1, 119), point[1]]
+                end = [clamp(point[0] + (.55 if same else -.35), 1, 119),
+                       clamp(point[1] + (target[1] - y) * .08, 1, 79)]
             points.append(({"player_id": pid, "team_id": entry["team_id"], "location": point},
                            {"player_id": pid, "team_id": entry["team_id"], "location": end}))
         return {"synthetic": True, "duration_seconds": 1.2,
@@ -106,8 +122,16 @@ def generate(seed):
         other_team = teams[1 - team_i]
         squad = [p["player"] for p in by_team[team["id"]] if p["position"] != "GK"]
         opponents = [p["player"] for p in by_team[other_team["id"]] if p["position"] != "GK"]
-        passer, receiver = rng.sample(squad, 2)
-        x, y = rng.uniform(24, 55), rng.uniform(12, 68)
+        x, y = rng.uniform(27, 69), rng.uniform(12, 68)
+        passer_entry = min((p for p in by_team[team["id"]] if p["position"] != "GK"),
+                           key=lambda p: abs(FORMATION[p["shirt_number"]][0] - x) + rng.uniform(0, 18))
+        passer = passer_entry["player"]
+        receiver_entry = min((p for p in by_team[team["id"]]
+                              if p["position"] != "GK" and p["player"]["id"] != passer["id"]),
+                             key=lambda p: (abs(FORMATION[p["shirt_number"]][0] - (x + 8))
+                                            + abs(FORMATION[p["shirt_number"]][1] - y) * .35
+                                            + rng.uniform(0, 12)))
+        receiver = receiver_entry["player"]
         completed = rng.random() < .82
         shot_chance = completed and rng.random() < .11
         if shot_chance:

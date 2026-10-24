@@ -31,6 +31,23 @@ class FullMatchTests(unittest.TestCase):
                 result = run(clip["id"], "striker", "zh", data, data / "output", audience="neutral")
                 self.assertEqual(result["validation.json"]["status"], "passed")
 
+    def test_tracking_uses_team_shape_and_fixed_goal_sides(self):
+        match, events, _ = generate(7)
+        event = next(e for e in events if e["team"]["id"] == match["away_team"]["id"])
+        positions = {point["player_id"]: point["location"]
+                     for point in event["tracking"]["start"]}
+        by_team = {side: {p["shirt_number"]: positions[p["player"]["id"]]
+                          for p in match["players"] if p["team_id"] == match[f"{side}_team"]["id"]}
+                   for side in ("home", "away")}
+        self.assertLess(by_team["away"][1][0], 15)
+        self.assertGreater(by_team["home"][1][0], 105)
+        for side in ("home", "away"):
+            team = {number: location if side == "away" else [120 - location[0], 80 - location[1]]
+                    for number, location in by_team[side].items()}
+            self.assertLess(team[2][0], team[7][0])
+            self.assertLess(team[7][0], team[9][0])
+            self.assertLess(team[2][1], team[5][1])
+
 
 if __name__ == "__main__":
     unittest.main()

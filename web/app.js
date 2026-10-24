@@ -5,7 +5,7 @@ const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Sh
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
 let schedule=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
 let pitchAnimation=null, lastPitchEvent=null;
-let requestController=null;
+const prefetched=new Map();
 let insightController=null, insightKey=null;
 const insightCache=new Map();
 async function updateLiveInsight(event){
@@ -86,7 +86,7 @@ const seen = () => data.events.slice(0,cursor);
 const unlocked = clip => seen().some(e=>e.id===clip.trigger_event_id);
 const shotFor = clip => data.events.find(e=>e.id===clip.trigger_event_id);
 function clearResult(){
-  epoch++;requestController?.abort();clearTimeout(fallbackTimer);fallbackTimer=null;
+  epoch++;clearTimeout(fallbackTimer);fallbackTimer=null;
   busy=false;prepared=null;highlightResume=false;$("skip-highlight").hidden=true;$("result").hidden=true;
   const video=$("highlight-video");video.onended=null;video.onerror=null;video.onplay=null;video.pause();video.removeAttribute("src");video.load();video.hidden=true;
   $("video-status").textContent="场景已选择，准备生成请求后可预览。";
@@ -109,9 +109,14 @@ function tick(){
   const clip=data.clips.find(c=>c.trigger_event_id===event.id);
   if(clip){selected=clip;clearResult();applyAudience();}
   render();
+  refreshReadyHighlight();
   if(cursor===data.events.length){stop();playbackMode="finished";updatePlayback();return;}
   if(data.clips.some(c=>c.event_ids.at(-1)===event.id)){
-    stop();playbackMode="highlight";prepareHighlight(true,true);return;
+    const entry=prefetched.get(JSON.stringify(highlightProfile(selected)));
+    if(entry?.status==="succeeded" && entry.artifacts?.["video_job.json"]?.media_url){
+      stop();playbackMode="highlight";prepareHighlight(true,true);return;
+    }
+    $("video-status").textContent="精彩时刻已发生，第一视角视频继续在后台生成；比赛与文字解说照常进行。";
   }
   if(playbackMode==="playing")scheduleNext();
 }
@@ -228,14 +233,18 @@ function renderPitch(event){
     if(text)node.textContent=text;group.append(node);return node;
   };
   const {points,active}=pitchState(event);
+  const displayPoint=location=>event.team.id===data.match.away_team.id
+    ?[120-location[0],80-location[1]]:location;
   const end=event.pass?.end_location || event.carry?.end_location || event.shot?.end_location;
   if(end){
-    svg("line",{x1:event.location[0],y1:event.location[1],x2:end[0],y2:end[1],stroke:"#e6ff8c","stroke-width":"1.6",opacity:".15"});
-    svg("line",{"data-role":"event-route",x1:event.location[0],y1:event.location[1],x2:end[0],y2:end[1],stroke:"#f0ffc0","stroke-width":".55","stroke-dasharray":event.type.name==="Carry"?".6 .7":"2 .8","marker-end":"url(#route-arrow)"});
-    svg("circle",{cx:end[0],cy:end[1],r:"1.5",fill:"none",stroke:"#fff9c2","stroke-width":".25"});
+    const from=displayPoint(event.location),to=displayPoint(end);
+    svg("line",{x1:from[0],y1:from[1],x2:to[0],y2:to[1],stroke:"#e6ff8c","stroke-width":"1.6",opacity:".15"});
+    svg("line",{"data-role":"event-route",x1:from[0],y1:from[1],x2:to[0],y2:to[1],stroke:"#f0ffc0","stroke-width":".55","stroke-dasharray":event.type.name==="Carry"?".6 .7":"2 .8","marker-end":"url(#route-arrow)"});
+    svg("circle",{cx:to[0],cy:to[1],r:"1.5",fill:"none",stroke:"#fff9c2","stroke-width":".25"});
   }
   const movingPlayers=[];
   points.forEach(point=>{
+    point={...point,location:displayPoint(point.location)};
     const firstChild=group.children.length;
     const isActive=active.has(point.player.id);
     if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:2,fill:"none",stroke:point.teammate?"#c4f277":"#f4ae8e","stroke-width":".22",opacity:".85"});
@@ -250,10 +259,10 @@ function renderPitch(event){
     const children=Array.from(group.children).slice(firstChild);
     const wrapper=svg("g",{"data-moving-player":point.player.id});
     children.forEach(child=>wrapper.append(child));
-    const target=event.tracking?.end.find(p=>p.player_id===point.player.id)?.location || point.location;
-    movingPlayers.push({wrapper,from:point.location,to:target});
+    const target=event.tracking?.end.find(p=>p.player_id===point.player.id)?.location;
+    movingPlayers.push({wrapper,from:point.location,to:target?displayPoint(target):point.location});
   });
-  const ball=end||event.location;
+  const ball=displayPoint(end||event.location);
   const football=svg("g",{"data-role":"football",transform:`translate(${ball[0]} ${ball[1]})`});
   const disc=document.createElementNS(football.namespaceURI,"circle");
   Object.entries({r:1.6,fill:"#fff",stroke:"#101b17","stroke-width":".3"}).forEach(([k,v])=>disc.setAttribute(k,v));football.append(disc);
@@ -263,7 +272,7 @@ function renderPitch(event){
     function animate(now){
       const t=duration?Math.min((now-began)/duration,1):1;
       movingPlayers.forEach(({wrapper,from,to})=>wrapper.setAttribute("transform",`translate(${(to[0]-from[0])*t} ${(to[1]-from[1])*t})`));
-      const a=event.tracking.ball_start,b=event.tracking.ball_end;
+      const a=displayPoint(event.tracking.ball_start),b=displayPoint(event.tracking.ball_end);
       football.setAttribute("transform",`translate(${a[0]+(b[0]-a[0])*t} ${a[1]+(b[1]-a[1])*t})`);
       if(t<1)pitchAnimation=requestAnimationFrame(animate);
     }
@@ -280,6 +289,73 @@ function renderPitch(event){
     :`${event.player.name} 接到传球，准备向球门推进。`;
   $("action-caption").textContent=`${event.minute}′ ${eventLabels[event.type.name]} · ${action}`;
 }
+function highlightProfile(clip){
+  const side=audience();
+  const supported=side==="neutral"?null:data.match[side==="home"?"home_team":"away_team"].id;
+  const viewpoint=side==="neutral"?pov:shotFor(clip).team.id===supported?"striker":"goalkeeper";
+  return {clip_id:clip.id,audience:side,pov:viewpoint,language:$("language").value};
+}
+function warmHighlight(clip,retry=false){
+  const profile=highlightProfile(clip);
+  const key=JSON.stringify(profile);
+  const cached=prefetched.get(key);
+  if(cached && !(retry && cached.status==="failed"))return cached;
+  const entry={key,profile,status:"submitting",artifacts:null,job_id:null,error:null};
+  entry.submitted=(async()=>{
+    const response=await fetch("/api/highlights/prepare",{
+      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)
+    });
+    const body=await response.json();
+    if(!response.ok)throw Error(body.error||"视频任务提交失败");
+    entry.artifacts=body.artifacts;entry.job_id=body.job_id;
+    entry.status=body.artifacts["video_job.json"].status;
+    refreshReadyHighlight();
+    return entry;
+  })();
+  entry.ready=(async()=>{
+    try{
+      await entry.submitted;
+      for(let attempt=0;attempt<120 && ["queued","running"].includes(entry.status);attempt++){
+        await new Promise(resolve=>setTimeout(resolve,5000));
+        const response=await fetch(`/api/highlights/${encodeURIComponent(entry.job_id)}`);
+        const body=await response.json();
+        if(!response.ok)throw Error(body.error||"视频状态查询失败");
+        entry.artifacts["video_job.json"]=body.video_job;
+        entry.status=body.video_job.status;
+      }
+      if(["queued","running"].includes(entry.status))throw Error("视频生成等待超时");
+      if(entry.status==="failed")entry.error=entry.artifacts["video_job.json"].error||"视频生成失败";
+    }catch(error){entry.status="failed";entry.error=error.message||"视频生成失败";}
+    refreshReadyHighlight();
+    return entry;
+  })();
+  prefetched.set(key,entry);
+  return entry;
+}
+function refreshReadyHighlight(){
+  if(!data)return;
+  const ready=[...data.clips].reverse().find(clip=>
+    seen().some(event=>event.id===clip.event_ids.at(-1)) &&
+    prefetched.get(JSON.stringify(highlightProfile(clip)))?.artifacts?.["video_job.json"]?.media_url);
+  const button=$("watch-ready");
+  button.hidden=!ready;
+  if(ready){
+    const shot=shotFor(ready);
+    button.textContent=`观看已完成的第一视角：${shot.minute}′ ${labels[shot.shot.outcome.name]}`;
+    if(selected?.id===ready.id && playbackMode==="playing")
+      $("video-status").textContent="第一视角视频已完成；比赛仍在继续，可随时点击观看。";
+    button.onclick=()=>{
+      stop();selected=ready;clearResult();playbackMode="highlight";prepareHighlight(true,true);
+    };
+  }
+}
+function warmUpcoming(){
+  if(!data)return;
+  for(const clip of data.clips){
+    const trigger=data.events.findIndex(event=>event.id===clip.trigger_event_id);
+    if(trigger>=cursor || selected?.id===clip.id && playbackMode==="highlight")warmHighlight(clip);
+  }
+}
 $("next").onclick=()=>{stop();playbackMode="paused";tick();updatePlayback();};
 $("play").onclick=()=>{if(playbackMode==="playing"){stop();playbackMode="paused";updatePlayback();}else start();};
 $("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;clearResult();render();start();};
@@ -287,15 +363,15 @@ $("speed").onchange=()=>{if(playbackMode==="playing"){stop();scheduleNext();}};
 $("mode").onchange=()=>render();
 $("audience").onchange=()=>{
   const resume=highlightResume;clearResult();applyAudience();render();
-  if(resume)prepareHighlight(true,true);
+  warmUpcoming();refreshReadyHighlight();if(resume)prepareHighlight(true,true);
 };
 $("language").onchange=()=>{
   const resume=highlightResume;clearResult();render();
-  if(resume)prepareHighlight(true,true);
+  warmUpcoming();refreshReadyHighlight();if(resume)prepareHighlight(true,true);
 };
 ["striker","goalkeeper"].forEach(id=>$(id).onclick=()=>{
   pov=id;$(id).className="selected";$(id==="striker"?"goalkeeper":"striker").className="secondary";
-  const resume=highlightResume;clearResult();render();if(resume)prepareHighlight(true,true);
+  const resume=highlightResume;clearResult();render();warmUpcoming();refreshReadyHighlight();if(resume)prepareHighlight(true,true);
 });
 function resumeMatch(version){
   if(version!==epoch || !highlightResume)return;
@@ -323,55 +399,34 @@ async function showVideo(job,version,automatic){
   }
 }
 $("skip-highlight").onclick=()=>resumeMatch(epoch);
-async function prepareHighlight(automatic=false,resume=false){
+async function prepareHighlight(automatic=false,resume=false,retry=false){
   if(!selected||busy)return;stop();if(!resume)playbackMode="paused";busy=true;highlightResume=resume;
   $("skip-highlight").hidden=!resume;const version=++epoch;
   applyAudience();
-  requestController=new AbortController();
-  $("error").hidden=true;$("video-status").textContent="正在准备场景和生成请求…";render();
+  $("error").hidden=true;$("video-status").textContent="正在读取后台视频任务…";render();
   try{
-    const response=await fetch("/api/highlights/prepare",{method:"POST",signal:requestController.signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({clip_id:selected.id,pov,language:$("language").value,audience:audience()})});
-    const body=await response.json();if(!response.ok)throw Error(body.error);
+    const entry=warmHighlight(selected,retry);
+    await entry.submitted;
     if(version!==epoch)return;
-    prepared=body.artifacts;
-    $("video-status").textContent="场景已准备 · 等待视频服务接入（尚未生成视频）";
+    prepared=entry.artifacts;
     $("commentary").textContent=prepared["commentary.json"].text;
     $("scene").textContent=JSON.stringify(prepared["scene.json"],null,2);$("result").hidden=false;
-    const job=prepared["video_job.json"];
-    if(job.status==="queued" || job.status==="running"){
-      $("video-status").textContent="AI 视频生成中，请稍候……";
-      pollVideo(body.job_id,version,automatic);
-    }else if(job.status==="not_submitted"){
-      $("video-status").textContent="未配置 OPENROUTER_API_KEY；已准备好视频提示词。";
+    if(["queued","running","submitting"].includes(entry.status))
+      $("video-status").textContent="后台正在生成第一视角视频，比赛已暂停等待…";
+    await entry.ready;
+    if(version!==epoch)return;
+    const job=entry.artifacts["video_job.json"];
+    if(entry.status==="succeeded" && job.media_url)await showVideo(job,version,automatic);
+    else if(entry.status==="not_submitted"){
+      $("video-status").textContent="未配置 OPENROUTER_API_KEY；即将继续比赛。";resumeAfterDelay(version);
+    }else{
+      $("video-status").textContent=`视频生成失败：${entry.error||"未知错误"}。即将继续比赛。`;
       resumeAfterDelay(version);
-    }
-    if(job.status==="succeeded" && job.media_url){
-      await showVideo(job,version,automatic);
     }
   }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，即将继续比赛。";resumeAfterDelay(version);}}
   finally{if(version===epoch){busy=false;render();}}
 }
-async function pollVideo(jobId,version,automatic){
-  for(let attempt=0;attempt<120 && version===epoch;attempt++){
-    await new Promise(resolve=>setTimeout(resolve,5000));
-    if(version!==epoch)return;
-    try{
-      const response=await fetch(`/api/highlights/${encodeURIComponent(jobId)}`,{signal:requestController?.signal});
-      const body=await response.json();if(!response.ok)throw Error(body.error||"视频状态查询失败");
-      if(version!==epoch)return;
-      const job=body.video_job;
-      prepared["video_job.json"]=job;
-      if(job.status==="failed"){$("video-status").textContent=`视频生成失败：${job.error||"未知错误"}`;resumeAfterDelay(version);return;}
-      if(job.status==="succeeded" && job.media_url){
-        await showVideo(job,version,automatic);
-        return;
-      }
-      $("video-status").textContent=job.status==="queued"?"视频任务排队中……":"AI 正在生成第一视角视频……";
-    }catch(error){if(version===epoch && error.name!=="AbortError"){$("video-status").textContent=`视频状态查询失败：${error.message}`;resumeAfterDelay(version);}return;}
-  }
-  if(version===epoch){$("video-status").textContent="视频等待超时，即将继续比赛。";resumeAfterDelay(version);}
-}
-$("prepare").onclick=()=>prepareHighlight(false);
+$("prepare").onclick=()=>prepareHighlight(false,false,true);
 $("download").onclick=()=>{if(!prepared)return;const url=URL.createObjectURL(new Blob([JSON.stringify(prepared["video_request.json"],null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="video-request.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 async function loadMatch(){
   stop();clearResult();insightController?.abort();insightKey=null;insightCache.clear();
@@ -380,7 +435,10 @@ async function loadMatch(){
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
     data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;
-    playbackMode="paused";render();start();
+    playbackMode="paused";render();start();warmUpcoming();
+    $("video-status").textContent=body.video_available
+      ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"
+      :"比赛已开球；当前未配置视频服务，关键时刻将展示场景提示词。";
   }catch(error){$("error").textContent=error.message;$("error").hidden=false;}
 }
 loadMatch();
