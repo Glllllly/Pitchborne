@@ -1,8 +1,10 @@
 # Inside the Moment — 工作流原型
 
+Python 依赖：`pip install -r requirements.txt`。
+
 从合成足球事件生成球员第一视角的场景规划、视频生成请求和解说。
 Python 本地框架负责合成事件、场景规划和展示；场边洞察现支持
-OpenRouter AI 解读，未配置时使用规则基线。视频与语音仍待接入。
+OpenRouter AI 解读与视频生成，未配置时使用规则基线和视频 dry-run。语音仍待接入。
 场景规划和右侧视频解说仍使用确定性模板。
 
 ```text
@@ -10,7 +12,7 @@ OpenRouter AI 解读，未配置时使用规则基线。视频与语音仍待接
                               └→ 解说文本 ───┤
                                       一致性检查
                                            ↓
-                                 视频供应商接口（dry-run）
+                                 OpenRouter 视频任务（无 Key 时 dry-run）
                                            ↓
                                       本地结果文件
 ```
@@ -38,7 +40,7 @@ python -m workflow.pipeline --clip saved --pov goalkeeper --language en
 | `video_request.json` | 英文视频提示词、负向提示词、时长及事件引用 |
 | `commentary.json` | 中文或英文解说文本；语音尚未生成 |
 | `validation.json` | 结构化结果、证据引用与视角一致性检查 |
-| `video_job.json` | 视频任务状态；目前为 `not_submitted` |
+| `video_job.json` | 视频任务状态：`queued`、`running`、`succeeded`、`failed`；无 Key 时为 `not_submitted` |
 | `run.json` | 本次运行参数及阶段 |
 
 ## 后续接入点
@@ -88,11 +90,11 @@ Python 标准库服务仅监听本机，面向开发预览，不用于生产部�
   有球队偏好时，后端按射门球队归属决定 `pov`，不直接相信前端传入的视角。
   `scene.viewer`、`video_request.viewer` 提供 `audience`、`pov`、`emotion`、`autoplay`；
   `commentary.json` 提供相应语气的解说文本与情绪标签，可供后续 TTS 使用。
-- 当前 prepare 是同步 dry-run。接真实视频服务时应新增独立提交/轮询接口，
-  包括 `queued / running / succeeded / failed` 状态与视频 URL；
-  前端已经支持 `video_job.json` 返回 `status: succeeded` 和 `media_url` 时展示播放器，
-  有立场的自动请求会尝试播放；浏览器禁止自动播放时提示手动点击。
-  当前没有视频资源，不能验证真实成片播放；尚未实现异步任务轮询。
+- 配置 `OPENROUTER_API_KEY` 后，prepare 会提交 OpenRouter 视频任务，前端轮询
+  `GET /api/highlights/<job_id>`，并在生成完成后自动显示播放器。有立场的观众
+  会尝试自动播放；浏览器禁止自动播放时可手动点击。后端把成片下载至
+  `outputs/<job_id>/video.mp4`，通过本地 `/api/highlights/<job_id>/video` 播放。
+  可用 `OPENROUTER_VIDEO_MODEL` 更换模型；无 Key 时仍为 dry-run。
 - API Key 放在后端环境变量中，不写进浏览器代码或提交到 Git。
 
 功能范围参考了 [Virtual Studio Crew](https://github.com/timmytrace/pl-insights-engine)

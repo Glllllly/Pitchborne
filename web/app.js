@@ -261,6 +261,12 @@ async function prepareHighlight(automatic=false){
     $("commentary").textContent=prepared["commentary.json"].text;
     $("scene").textContent=JSON.stringify(prepared["scene.json"],null,2);$("result").hidden=false;
     const job=prepared["video_job.json"];
+    if(job.status==="queued" || job.status==="running"){
+      $("video-status").textContent="AI 视频生成中，请稍候……";
+      pollVideo(body.job_id,version,automatic);
+    }else if(job.status==="not_submitted"){
+      $("video-status").textContent="未配置 OPENROUTER_API_KEY；已准备好视频提示词。";
+    }
     if(job.status==="succeeded" && job.media_url){
       const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
       $("video-status").textContent="第一视角视频已就绪。";
@@ -270,6 +276,28 @@ async function prepareHighlight(automatic=false){
     }
   }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，请重试。";}}
   finally{if(version===epoch){busy=false;render();}}
+}
+async function pollVideo(jobId,version,automatic){
+  for(let attempt=0;attempt<120 && version===epoch;attempt++){
+    await new Promise(resolve=>setTimeout(resolve,5000));
+    if(version!==epoch)return;
+    try{
+      const response=await fetch(`/api/highlights/${encodeURIComponent(jobId)}`,{signal:requestController?.signal});
+      const body=await response.json();if(!response.ok)throw Error(body.error||"视频状态查询失败");
+      if(version!==epoch)return;
+      const job=body.video_job;
+      prepared["video_job.json"]=job;
+      if(job.status==="failed"){$("video-status").textContent=`视频生成失败：${job.error||"未知错误"}`;return;}
+      if(job.status==="succeeded" && job.media_url){
+        const video=$("highlight-video");video.src=job.media_url;video.hidden=false;
+        $("video-status").textContent="第一视角视频已就绪。";
+        if(automatic){try{await video.play();}catch{if(version===epoch)$("video-status").textContent="视频已就绪，点击播放开始观看。";}}
+        return;
+      }
+      $("video-status").textContent=job.status==="queued"?"视频任务排队中……":"AI 正在生成第一视角视频……";
+    }catch(error){if(version===epoch && error.name!=="AbortError")$("video-status").textContent=`视频状态查询失败：${error.message}`;return;}
+  }
+  if(version===epoch)$("video-status").textContent="生成时间较长，请重新选择片段查看任务进度。";
 }
 $("prepare").onclick=()=>prepareHighlight(false);
 $("download").onclick=()=>{if(!prepared)return;const url=URL.createObjectURL(new Blob([JSON.stringify(prepared["video_request.json"],null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="video-request.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
