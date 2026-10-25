@@ -71,6 +71,22 @@ class InsightTests(unittest.TestCase):
             self.assertIn("event_id", insight)
             self.assertEqual(insight["event_id"], event["id"])
 
+    def test_rolling_context_uses_only_past_five_minutes(self):
+        from scripts.generate_match import generate
+        match, events, _ = generate(7)
+        index = next(i for i, item in enumerate(events)
+                     if item["type"]["name"] == "Shot" and item["minute"] >= 10)
+        shot = events[index]
+        insight = build_insight(match, events, shot["id"], mode="analyst")
+        second = shot["minute"] * 60 + shot["second"]
+        expected = sum(item["type"]["name"] == "Shot" and item["team"]["id"] == shot["team"]["id"]
+                       and second - 300 < item["minute"] * 60 + item["second"] <= second
+                       for item in events[:index + 1])
+        self.assertEqual(insight["context"]["recent_shots"], expected)
+        self.assertTrue(insight["analysis"]["verdict"])
+        self.assertTrue(insight["analysis"]["why"])
+        self.assertEqual(insight["context"], build_insight(match, events[:index + 1], shot["id"])["context"])
+
 
 if __name__ == "__main__":
     unittest.main()

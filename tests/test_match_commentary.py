@@ -38,6 +38,20 @@ class CommentaryTests(unittest.TestCase):
                      if event.get("shot", {}).get("outcome", {}).get("name") == "Goal")
         self.assertEqual(len({tracks[side][index]["text"] for side in tracks}), 3)
 
+    def test_variety_and_past_only_writing(self):
+        match, events, _ = generate(7)
+        for builder in (build_tracks, build_english_tracks):
+            tracks = builder(match, events)
+            neutral = [line["text"] for line in tracks["neutral"] if line["text"]]
+            self.assertGreater(len(set(neutral)), len(neutral) * .65)
+            for cutoff in (80, 240, 500):
+                earlier = builder(match, events[:cutoff])
+                for audience in tracks:
+                    self.assertEqual(tracks[audience][:cutoff], earlier[audience])
+            for index, event in enumerate(events):
+                if event["type"]["name"] == "Goal Keeper":
+                    self.assertTrue(all(not tracks[side][index]["text"] for side in tracks))
+
 
 if __name__ == "__main__":
     unittest.main()

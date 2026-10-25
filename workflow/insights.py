@@ -3,6 +3,8 @@
 import math
 from typing import Protocol
 
+from workflow.match_context import build_analysis, build_match_context
+
 
 class InsightWriter(Protocol):
     """Implement with the chosen server-side model SDK; use a bounded timeout."""
@@ -51,6 +53,11 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
                      forward_progress_m=round(progress, 1),
                      recipient=event["pass"]["recipient"]["name"],
                      pass_complete=event["pass"]["outcome"]["name"] == "Complete")
+        if event.get("kinematics"):
+            facts.update(ball_speed_kmh=event["kinematics"]["ball_speed_kmh"],
+                         pass_difficulty=event["kinematics"]["pass_difficulty"],
+                         pass_difficulty_level=event["kinematics"]["pass_difficulty_level"],
+                         nearest_defender_to_target_m=event["kinematics"]["nearest_defender_to_target_m"])
         title = "把进攻向前送"
         detail = f"这脚传球向球门方向推进约 {progress:.1f} 米，找到 {facts['recipient']}。"
         why = "它让接球者在更靠近球门的位置处理下一步进攻。"
@@ -101,6 +108,8 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
                      nearest_defender_m=round(nearest, 1) if nearest is not None else None,
                      goal_opening_angle_degrees=round(angle, 1),
                      under_pressure=shot.get("under_pressure", False), outcome=outcome)
+        if shot.get("kinematics"):
+            facts["shot_speed_kmh"] = shot["kinematics"]["ball_speed_kmh"]
         detail = f"这脚射门距球门中心约 {facts['goal_distance_m']} 米"
         if nearest is not None:
             detail += f"，最近防守球员约 {nearest:.1f} 米"
@@ -184,15 +193,25 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
             text = calls[facts["outcome"]][0 if audience == "neutral" else 1 if favor_attack else 2] + observation
     if mode == "analyst" and "goal_opening_angle_degrees" in facts:
         text += f" 从射门点看，两门柱夹角约 {facts['goal_opening_angle_degrees']}°。"
+    if mode == "analyst" and kind == "Pass" and "pass_difficulty" in facts:
+        levels = {"low": "低", "medium": "中", "high": "高"}
+        text += f" 传球难度 {facts['pass_difficulty']}/100（{levels[facts['pass_difficulty_level']]}），合成球速约 {facts['ball_speed_kmh']} 公里/小时。"
+    if mode == "analyst" and kind in ("Shot", "Goal Keeper") and "shot_speed_kmh" in facts:
+        text += f" 合成射门球速约 {facts['shot_speed_kmh']} 公里/小时。"
     event_names = {"Pass": "传球", "Ball Receipt*": "接球", "Carry": "带球推进", "Shot": "射门", "Goal Keeper": "扑救",
                    "Interception": "拦截", "Pressure": "施压", "Tackle": "抢断", "Full Time": "全场结束"}
-    evidence = [{"event_id": item["id"], "label": f"{item['minute']}′ {item['player']['name']} · {event_names.get(item['type']['name'], item['type']['name'])}"} for item in chain]
+    context = build_match_context(match, prefix, event)
+    analysis = build_analysis(event, facts, context)
+    context_ids = set(context["supporting_event_ids"])
+    context_events = [item for item in prefix if item["id"] in context_ids and item not in chain]
+    evidence_events = context_events + chain
+    evidence = [{"event_id": item["id"], "label": f"{item['minute']}′ {item['player']['name']} · {event_names.get(item['type']['name'], item['type']['name'])}"} for item in evidence_events]
     result = {
         "schema": "pilot.live-insight.v1", "event_id": event_id,
         "audience": audience, "mode": mode, "title": title, "text": text,
         "generator": "rules-v1", "generator_label": "规则解读 · AI 接口待接入",
-        "facts": facts, "evidence": evidence,
-        "measurement_note": f"距离与角度按 {physical[0]} × {physical[1]} 米模拟球场计算；依据为合成事件与位置。",
+        "facts": facts, "context": context, "analysis": analysis, "evidence": evidence,
+        "measurement_note": f"距离与角度按 {physical[0]} × {physical[1]} 米模拟球场计算；近五分钟统计只含当前及此前合成事件。",
         "render": {"slot": "pitch_commentary", "match_minute": event["minute"], "match_second": event["second"], "expires_on_next_event": True},
         "ai_request": {
             "instructions": (
@@ -211,6 +230,8 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
                 "防守方扑救：‘扑出来了！好样的！对手都已经起脚了，我们的门将把这一球挡住了！’。"
                 "Use only the supplied facts and evidence. Never predict or reveal later events. "
                 "Audience preference changes emphasis and emotion, never facts. "
+                "Use the supplied analysis and rolling context to explain why the moment matters; "
+                "mention a rhythm pattern only when its supplied label is not insufficient_signal. "
                 "Do not invent intent, causation, xG, historical records, tactical patterns or unseen runs. "
                 "Nearby defenders alone do not prove a shot was blocked or forced wide. "
                 "Return JSON {title, text, evidence_event_ids}. Cite only supplied IDs. "
@@ -224,7 +245,7 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
                 "Weave one concrete supported observation into the call, rather than ending with a formal summary."
             ),
             "audience": audience, "supported_team_id": supported, "attacking_team_id": attack_team,
-            "mode": mode, "facts": facts, "evidence": evidence,
+            "mode": mode, "facts": facts, "context": context, "analysis": analysis, "evidence": evidence,
         },
     }
     if writer is not None:

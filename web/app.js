@@ -23,6 +23,15 @@ function releaseVideoSlot(){
 }
 let insightController=null, insightKey=null;
 const insightCache=new Map();
+const aiCommentaryCache=new Map();
+const aiLineKey=(eventId,side,mode)=>`${eventId}:${side}:${mode}`;
+function upgradeCommentaryCard(insight){
+  if(insight.generator!=="ai" || insight.facts.event_type!=="Shot")return;
+  aiCommentaryCache.set(aiLineKey(insight.event_id,insight.audience,insight.mode),insight.text);
+  if($("live-language").value!=="zh" || audience()!==insight.audience || $("mode").value!==insight.mode)return;
+  const row=[...$("commentary-history").children].find(item=>item.dataset.eventId===insight.event_id);
+  if(row){row.querySelector("p").textContent=insight.text;row.classList.add("ai-commentary");}
+}
 async function updateLiveInsight(event){
   if(event && !["Shot","Interception","Tackle","Pressure"].includes(event.type.name))return;
   const key=event?`${event.id}:${audience()}:${$("mode").value}:${$("live-language").value}`:null;
@@ -56,6 +65,7 @@ async function updateLiveInsight(event){
       if(insight.ai_available && featured && $("live-language").value==="zh")insight=await fetchInsight(true);
       insightCache.set(key,insight);
     }
+    upgradeCommentaryCard(insight);
     if(key!==insightKey)return;
     displayLiveInsight(insight);
   }catch(error){
@@ -72,6 +82,7 @@ async function updateLiveInsight(event){
 function displayLiveInsight(insight){
     const english=$("live-language").value==="en";
     const fact=insight.facts;
+    const context=insight.context||{}, analysis=insight.analysis||{};
     let englishTitle="Why this matters", englishText="The next phase will show whether the move develops.";
     if(fact.event_type==="Shot"){
       englishTitle=fact.outcome==="Goal"?"A chance becomes a goal":fact.outcome==="Saved"?"The keeper preserves the score":"The chance goes begging";
@@ -83,12 +94,47 @@ function displayLiveInsight(insight){
     }
     $("insight-title").textContent=english?englishTitle:insight.title;
     $("insight-text").textContent=english?englishText:insight.text;
-    $("insight-source").textContent=english?"Rule explanation · synthetic events":insight.generator_label;
+    $("insight-text").hidden=!english && insight.generator==="ai" && fact.event_type==="Shot";
+    $("insight-source").textContent=english?"Rule explanation · synthetic events":insight.generator==="ai"?"AI 解说 · 规则局面判断":insight.generator_label;
+    $("insight-heading-label").textContent=english?"MATCH INTELLIGENCE · WHY IT MATTERS":"场边洞察 · 为什么重要";
+    $("insight-verdict-label").textContent=english?"READ OF PLAY":"局面判断";
+    let englishVerdict="The match state needs more evidence";
+    let englishWhy="This event alone does not establish a sustained pattern.";
+    let englishWatch="Watch the next sequence before drawing a stronger conclusion.";
+    if(fact.event_type==="Shot"){
+      englishVerdict=fact.outcome==="Goal"?"The chance changes the score":fact.outcome==="Saved"?"A real chance, held by the keeper":"A shot, without a finish";
+      englishWhy=fact.outcome==="Goal"?"This attack has produced a goal, so its impact is already on the scoreboard.":fact.outcome==="Saved"?"The move reached a shot, but the keeper prevented a goal.":"The move created a shot, but the miss leaves the score unchanged.";
+      englishWatch="Watch whether the next attack reaches a similar shooting position.";
+    }else if(fact.event_type==="Pressure"){
+      englishVerdict="Pressure without a confirmed turnover";englishWhy="Closing down the carrier limits space, but one pressure event does not prove possession has changed.";
+      englishWatch="Watch for an inaccurate pass, interception or tackle.";
+    }else if(["Interception","Tackle"].includes(fact.event_type)){
+      englishVerdict="A defensive win changes possession";englishWhy="The action ends the opponent's current move and creates a new starting point.";
+      englishWatch="Watch the first pass after the ball is won.";
+    }
+    $("insight-verdict").textContent=english?englishVerdict:analysis.verdict||"";
+    $("insight-why").textContent=english?englishWhy:analysis.why||"";
+    $("insight-analyst").hidden=$("mode").value!=="analyst";
+    const labelMap={"射门距离":"Shot distance","本方近五分钟射门":"Team shots · last 5 min","最近防守者":"Nearest defender","本次球权成功传球":"Completed passes · this possession","本方近五分钟施压":"Team pressures · last 5 min","本方近五分钟夺回球权":"Ball wins · last 5 min","向前推进":"Forward progress","合成传球难度":"Synthetic pass difficulty"};
+    $("insight-signals").replaceChildren(...(analysis.signals||[]).map(signal=>{
+      const item=document.createElement("div");item.className="insight-signal";
+      const label=document.createElement("span");label.textContent=english?labelMap[signal.label]||signal.label:signal.label;
+      const value=document.createElement("strong");value.textContent=signal.value;item.append(label,value);return item;
+    }));
+    let englishPattern="There is not enough continuous evidence yet to call one side in control.";
+    if(context.rhythm==="rising_shot_volume")englishPattern=`Shot rhythm: ${context.recent_shots} team shots in the last five minutes, up from ${context.previous_shots} in the previous five.`;
+    else if(context.rhythm==="repeat_shots")englishPattern=`The team has taken ${context.recent_shots} shots in the last five minutes; chances are recurring.`;
+    else if(context.rhythm==="pressure_cluster")englishPattern=`The team has recorded ${context.recent_pressures} pressures in five minutes, though that alone does not establish control.`;
+    $("insight-pattern").textContent=english?englishPattern:analysis.pattern||"";
+    $("insight-watch").textContent=english?`NEXT TO WATCH · ${englishWatch}`:`接下来观察 · ${analysis.watch||""}`;
+    $("insight-scope").textContent=english?"Based only on synthetic events so far; local actions are not full tactical tracking.":analysis.scope||"";
     $("insight-measurement").textContent=english?"Distances and angles are estimates from synthetic event positions on a 105 × 68 m pitch.":insight.measurement_note;
     const factNames=english?{pass_distance_m:"Pass distance (m)",forward_progress_m:"Forward progress (m)",
+      ball_speed_kmh:"Ball speed (km/h)",shot_speed_kmh:"Shot speed (km/h)",pass_difficulty:"Pass difficulty (0–100)",
       carry_distance_m:"Carry distance (m)",goal_distance_reduction_m:"Closer to goal (m)",
       goal_distance_m:"Distance to goal (m)",nearest_defender_m:"Nearest defender (m)",
       goal_opening_angle_degrees:"Goal opening angle (°)"}:{pass_distance_m:"传球距离（米）",forward_progress_m:"向前推进（米）",
+      ball_speed_kmh:"传球球速（公里/小时）",shot_speed_kmh:"射门球速（公里/小时）",pass_difficulty:"传球难度（0–100）",
       carry_distance_m:"带球距离（米）",goal_distance_reduction_m:"距球门缩短（米）",
       goal_distance_m:"距球门中心（米）",nearest_defender_m:"最近防守球员（米）",
       goal_opening_angle_degrees:"两门柱夹角（度）"};
@@ -163,17 +209,28 @@ function start(){
 function renderCommentary(){
   const lines=($('live-language').value==='en'?data.commentary_en:data.commentary)?.[audience()]||[];
   const feed=$("commentary-history");
-  const trackKey=`${audience()}:${$('live-language').value}`;
+  const trackKey=`${audience()}:${$('live-language').value}:${$("mode").value}`;
   if(commentaryAudience!==trackKey || cursor<commentaryCursor){
     feed.replaceChildren();commentaryCursor=Math.max(0,cursor-28);commentaryAudience=trackKey;
   }
   for(let index=commentaryCursor;index<cursor;index++){
     const line=lines[index];if(!line?.text)continue;
     const row=document.createElement("div");row.className="commentary-card";
+    row.dataset.eventId=line.event_id;
     if(data.events[index]?.type.name==="Shot")row.classList.add("key-moment");
     const time=document.createElement("time");time.textContent=`${Math.floor(line.match_second/60)}′`;
-    const text=document.createElement("p");text.textContent=line.text;
+    const aiText=$("live-language").value==="zh"?aiCommentaryCache.get(aiLineKey(line.event_id,audience(),$("mode").value)):null;
+    const text=document.createElement("p");text.textContent=aiText||line.text;
+    if(aiText)row.classList.add("ai-commentary");
     row.append(time,text);feed.append(row);
+    if($("mode").value==="analyst"){
+      const metric=data.events[index]?.kinematics;
+      if(metric){const tag=document.createElement("small");tag.className="event-metric";
+        tag.textContent=data.events[index].type.name==="Pass"
+          ?`传球 ${metric.ball_distance_m} m · ${metric.ball_speed_kmh} km/h · 难度 ${metric.pass_difficulty}/100`
+          :`射门球速 ${metric.ball_speed_kmh} km/h · 飞行 ${metric.ball_flight_seconds} s`;
+        row.append(tag);}
+    }
   }
   commentaryCursor=cursor;
   while(feed.children.length>50)feed.firstChild.remove();
@@ -215,6 +272,8 @@ function renderDataBoard(events){
     ["关键传球","keyPasses",value=>String(value)],
     ["成功传球","completedPasses",value=>String(value)],
     ["传球成功率","passAccuracy",value=>`${Math.round(value*100)}%`],
+    ["平均传球球速 · 合成","averagePassSpeed",value=>`${Math.round(value)} km/h`],
+    ["平均射门球速 · 合成","averageShotSpeed",value=>`${Math.round(value)} km/h`],
     ["xG · 合成估算","xg",value=>value.toFixed(2)],
   ];
   $("metric-rows").replaceChildren(...metrics.map(([label,key,format])=>{
@@ -548,7 +607,7 @@ async function loadMatch(){
   try{
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
-    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;
+    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;aiCommentaryCache.clear();
     playbackMode="paused";renderLineups();render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
       ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"

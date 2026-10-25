@@ -20,6 +20,7 @@ export function summarizeMatch(match, events) {
     const own = events.filter(event => event.team.id === team.id);
     const ownShots = own.filter(event => event.type.name === "Shot");
     const passes = own.filter(event => event.type.name === "Pass");
+    const averageSpeed = rows => rows.length ? rows.reduce((total,event)=>total+(event.kinematics?.ball_speed_kmh||0),0)/rows.length : 0;
     return {
       team,
       goals: ownShots.filter(event => event.shot.outcome.name === "Goal").length,
@@ -29,6 +30,8 @@ export function summarizeMatch(match, events) {
       passes: passes.length,
       completedPasses: passes.filter(event => event.pass?.outcome.name === "Complete").length,
       passAccuracy: passes.length ? passes.filter(event => event.pass?.outcome.name === "Complete").length / passes.length : 0,
+      averagePassSpeed: averageSpeed(passes),
+      averageShotSpeed: averageSpeed(ownShots),
       xg: ownShots.reduce((sum, shot) => sum + estimatedShotXg(shot), 0),
     };
   });

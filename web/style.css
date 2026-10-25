@@ -22,13 +22,19 @@ main{max-width:1600px;height:100vh;min-height:620px;padding:18px 24px;display:fl
 .commentary-card time{display:block;color:#bce77c;font-size:11px;font-weight:700;letter-spacing:.05em}
 .commentary-card p{margin:4px 0 0;color:#e8eee7;font-size:14px;line-height:1.5}
 .commentary-card.key-moment{border-color:#a9d86d;background:#27392a}
+.commentary-card.ai-commentary::after{content:"AI 解说 · 当前事件";display:block;margin-top:5px;color:#bce77c;font-size:10px;letter-spacing:.04em}
+.event-metric{display:block;margin-top:6px;color:#acd992;font-size:11px}
 .live-mode-label{font-size:11px;gap:2px}.live-mode-label select{font-size:12px;padding:4px 8px}
 .live-options{display:flex;gap:8px;align-items:center}.live-options select{max-width:105px}
-.live-panel #insight{flex:0 0 auto;margin-top:14px;padding:12px 14px;background:#263827;border:1px solid #668a4d;border-radius:10px;max-height:240px;overflow:auto}
+.live-panel #insight{flex:0 0 auto;margin-top:14px;padding:14px 16px;background:linear-gradient(145deg,#263827,#1c3025);border:1px solid #668a4d;border-radius:10px;max-height:min(47vh,390px);overflow:auto}
 .live-panel #insight[hidden]{display:none}
 .insight-heading{display:flex;justify-content:space-between;gap:8px;color:#c4f277;font-size:11px}.insight-heading span{font-weight:400;color:#9eb79b}
 .live-panel #insight h3{font-size:15px;margin:5px 0 2px}.live-panel #insight p{font-size:12px;line-height:1.5;margin:3px 0;color:#e5eddf}
 .live-panel #insight details{margin:7px 0 0;color:#adc39f}.live-panel #insight ul{padding-left:18px;margin:5px 0}
+.insight-judgment{border-left:3px solid #c4f277;margin-top:10px;padding:3px 0 3px 10px}.insight-judgment span{display:block;color:#aecd95;font-size:10px;font-weight:800;letter-spacing:.1em}.insight-judgment strong{display:block;margin:2px 0;color:#f2ffe6;font-size:14px}.live-panel #insight .insight-judgment p{margin:0;color:#c7d9c5}
+.insight-signals{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.insight-signal{display:flex;flex-direction:column;min-width:85px;background:#15261c;border:1px solid #3f5b43;border-radius:6px;padding:4px 7px}.insight-signal span{font-size:10px;color:#a4bda4}.insight-signal strong{font-size:12px;color:#efffe3}
+.live-panel #insight #insight-pattern{margin-top:10px;color:#d5e7c7}.live-panel #insight #insight-watch{color:#bfe28f}.live-panel #insight #insight-scope{font-size:10px;color:#8ba38c}
+@media(max-width:850px){.live-panel #insight{max-height:210px}}
 @keyframes commentary-rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 #pov-stage{position:absolute;inset:0;z-index:5;background:#07120e;display:flex;align-items:center;justify-content:center}
 #highlight-video{width:100%;height:100%;object-fit:contain;background:#07120e}

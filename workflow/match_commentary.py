@@ -66,7 +66,8 @@ def build_tracks(match, events):
                         f"比赛结束！我们 {'赢了' if score[supported] > score[away if supported == home else home] else '输了' if score[supported] < score[away if supported == home else home] else '打平了'}，比分 {score[home]} 比 {score[away]}。")
             lines.append({"event_id": event["id"], "text": text,
                           "match_second": event["minute"] * 60 + event["second"]})
-    return tracks
+    from workflow.commentary_enrichment import enrich_tracks
+    return enrich_tracks(match, events, tracks, "zh")
 
 
 def build_english_tracks(match, events):
@@ -123,4 +124,5 @@ def build_english_tracks(match, events):
                         f"Full time! {'We win' if score[supported] > score[away if supported == home else home] else 'We lose' if score[supported] < score[away if supported == home else home] else 'It ends level'}, {score[home]}–{score[away]}.")
             lines.append({"event_id": event["id"], "text": text,
                           "match_second": event["minute"] * 60 + event["second"]})
-    return tracks
+    from workflow.commentary_enrichment import enrich_tracks
+    return enrich_tracks(match, events, tracks, "en")

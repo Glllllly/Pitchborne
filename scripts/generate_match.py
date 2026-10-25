@@ -10,6 +10,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 from workflow.pipeline import ROOT
 from workflow.match_commentary import build_tracks, build_english_tracks
+from workflow.kinematics import annotate_ball_event
 
 SAMPLE = ROOT / "data" / "synthetic" / "match.json"
 FORMATION = {
@@ -30,7 +31,7 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 7
+    match["generator_version"] = 10
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"
@@ -108,6 +109,7 @@ def generate(seed):
         if details:
             item.update(details)
         item["tracking"] = tracking(item, target or location)
+        annotate_ball_event(match, item, seed)
         events.append(item)
         return item
 

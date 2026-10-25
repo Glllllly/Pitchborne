@@ -5,7 +5,7 @@ import {estimatedShotXg,summarizeMatch} from "../web/match_stats.mjs";
 const match={home_team:{id:1,name:"Home"},away_team:{id:2,name:"Away"}};
 const pass={id:"pass-1",team:{id:1},type:{name:"Pass"},pass:{outcome:{name:"Complete"}}};
 const shot={id:"shot-1",team:{id:1},type:{name:"Shot"},location:[105,40],under_pressure:false,
-  shot:{outcome:{name:"Goal"},key_pass_id:"pass-1"}};
+  shot:{outcome:{name:"Goal"},key_pass_id:"pass-1"},kinematics:{ball_speed_kmh:91}};
 
 test("live statistics count only events already played", () => {
   const before=summarizeMatch(match,[pass]);
@@ -17,6 +17,7 @@ test("live statistics count only events already played", () => {
   assert.equal(after[0].shotsOnTarget,1);
   assert.equal(after[0].goals,1);
   assert.ok(after[0].xg>0);
+  assert.equal(after[0].averageShotSpeed,91);
   assert.equal(after[1].shots,0);
 });
 
