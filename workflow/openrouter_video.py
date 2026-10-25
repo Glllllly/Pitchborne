@@ -16,19 +16,21 @@ MAX_VIDEO_BYTES = 100 * 1024 * 1024
 
 
 class VideoServiceError(RuntimeError):
-    pass
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def setting(name):
-    if os.environ.get(name):
-        return os.environ[name]
     env = ROOT / ".env"
     if env.exists():
         for line in env.read_text(encoding="utf-8-sig").splitlines():
             key, sep, value = line.partition("=")
             if sep and key.strip() == name:
-                return value.strip().strip('"\'')
-    return ""
+                configured = value.strip().strip('"\'')
+                if configured:
+                    return configured
+    return os.environ.get(name, "")
 
 
 class OpenRouterVideoProvider:
@@ -55,7 +57,9 @@ class OpenRouterVideoProvider:
             return data
         except (requests.RequestException, ValueError) as error:
             status = getattr(getattr(error, "response", None), "status_code", None)
-            raise VideoServiceError(f"OpenRouter video request failed{f' (HTTP {status})' if status else ''}") from None
+            if status == 402:
+                raise VideoServiceError("OpenRouter 视频请求被拒绝（HTTP 402）：请检查账户余额和 API Key 消费上限", status) from None
+            raise VideoServiceError(f"OpenRouter video request failed{f' (HTTP {status})' if status else ''}", status) from None
 
     def submit(self, request):
         payload = {"model": self.model, "prompt": request["prompt"]}
@@ -83,7 +87,15 @@ class OpenRouterVideoProvider:
             remote_id = job["remote_job_id"]
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", remote_id):
                 raise VideoServiceError("Invalid video job ID")
-            data = self._json("GET", f"{BASE}/{remote_id}")
+            try:
+                data = self._json("GET", f"{BASE}/{remote_id}")
+            except VideoServiceError as error:
+                if error.status_code != 404:
+                    raise
+                job["status"] = "failed"
+                job["error"] = "OpenRouter 视频任务已失效或不存在（HTTP 404），无法继续查询"
+                saved.write_text(json.dumps(job, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                return job
             status = data.get("status")
             if status == "pending":
                 job["status"] = "queued"

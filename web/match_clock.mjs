@@ -1,6 +1,6 @@
 import {pitchDistanceMetres,playerMotion} from "./pitch_motion.mjs";
 
-const ACTION_MS={Pass:850,"Ball Receipt*":470,Carry:850,Interception:650,Tackle:680,Pressure:620,Shot:1050,"Goal Keeper":500};
+const ACTION_MS={Pass:850,"Ball Receipt*":470,Carry:850,Interception:650,Tackle:680,Pressure:620,Shot:1050,"Goal Keeper":500,"Kick Off":900};
 const SPRINT_MPS=10;
 const ACTIVE_MPS=5.4;
 const FOLLOW_MPS=3.8;
@@ -8,6 +8,10 @@ const FOLLOW_MPS=3.8;
 export function keyPlayerIds(event){
   const ids=new Set([event.player?.id]);
   if(event.pass?.recipient?.id)ids.add(event.pass.recipient.id);
+  if(event.kick_off){
+    if(event.kick_off.recipient?.id)ids.add(event.kick_off.recipient.id);
+    event.tracking?.start.forEach(point=>ids.add(point.player_id));
+  }
   if(event.shot)event.shot.freeze_frame?.filter(point=>point.position?.name==="Goalkeeper")
     .forEach(point=>ids.add(point.player.id));
   return ids;
@@ -18,6 +22,7 @@ export function buildMotionPlan(events){
   const referenceTeam=events[0].team?.id;
   const positions=new Map();
   const plan=[];
+  let previousBall=null;
   for(let index=0;index<events.length-1;index++){
     const event=events[index],next=events[index+1];
     const gap=(next.minute*60+next.second)-(event.minute*60+event.second);
@@ -34,7 +39,11 @@ export function buildMotionPlan(events){
       action=Math.max(action,pitchDistanceMetres(start,ends.get(id)||start));
     }
     // The running curve peaks at 1 / (1 - .12) times its average speed.
-    const setupMs=Math.max(120,Math.ceil(approach/SPRINT_MPS/0.88*1000));
+    const runnerSetup=Math.ceil(approach/(event.type.name==="Kick Off"?7:SPRINT_MPS)/0.88*1000);
+    const ballStart=event.tracking?.ball_start&&orient(event.tracking.ball_start);
+    const ballApproach=previousBall&&ballStart
+      ?Math.ceil(pitchDistanceMetres(previousBall,ballStart)/25*1500):0;
+    const setupMs=Math.max(120,runnerSetup,ballApproach);
     const actionMs=Math.max(ACTION_MS[event.type.name]||600,Math.ceil(action/ACTIVE_MPS*1500));
     const durationMs=setupMs+actionMs;
     plan.push({durationMs,setupShare:setupMs/durationMs});
@@ -42,6 +51,7 @@ export function buildMotionPlan(events){
       const start=starts.get(id)||end,from=positions.get(id)||start;
       positions.set(id,keyIds.has(id)?end:playerMotion(from,end,1,durationMs,FOLLOW_MPS));
     }
+    previousBall=event.tracking?.ball_end?orient(event.tracking.ball_end):previousBall;
   }
   return plan;
 }
@@ -52,4 +62,31 @@ export function buildSchedule(events){
 
 export function replayMinutes(events){
   return Math.round(buildSchedule(events).reduce((total,value)=>total+value,0)/60000);
+}
+
+const endsPossession=event=>event.type.name==="Shot" ||
+  event.type.name==="Interception" || event.type.name==="Tackle" ||
+  event.type.name==="Pressure" || event.type.name==="Goal Keeper" ||
+  event.type.name==="Kick Off" ||
+  event.type.name==="Full Time" ||
+  (event.type.name==="Pass" && event.pass?.outcome?.name!=="Complete");
+
+export function combinationAt(events,index){
+  const current=events[index];
+  if(!current)return {players:new Set(),passes:[]};
+  if(!["Pass","Ball Receipt*","Carry","Shot"].includes(current.type.name))
+    return {players:new Set(),passes:[]};
+  const players=new Set(),passes=[];
+  for(let cursor=index;cursor>=0;cursor--){
+    const event=events[cursor];
+    if(event.team.id!==current.team.id || (cursor<index&&endsPossession(event)))break;
+    if(event.type.name==="Pass"){
+      players.add(event.player.id);
+      if(event.pass?.recipient?.id)players.add(event.pass.recipient.id);
+      if(event.pass?.outcome?.name==="Complete")passes.unshift(event);
+    }else if(cursor===index && ["Ball Receipt*","Carry","Shot"].includes(event.type.name)){
+      players.add(event.player.id);
+    }
+  }
+  return {players,passes};
 }

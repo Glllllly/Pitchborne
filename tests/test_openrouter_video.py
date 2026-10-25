@@ -2,8 +2,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from requests import HTTPError, Response
 
-from workflow.openrouter_video import OpenRouterVideoProvider, VideoServiceError
+from workflow.openrouter_video import OpenRouterVideoProvider, VideoServiceError, setting
 
 
 class FakeResponse:
@@ -45,6 +47,12 @@ class FakeSession:
 
 
 class OpenRouterVideoTests(unittest.TestCase):
+    def test_dotenv_key_takes_precedence_over_process_environment(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / ".env").write_text("OPENROUTER_API_KEY=dotenv-key\n", encoding="utf-8")
+            with patch("workflow.openrouter_video.ROOT", Path(tmp)), patch.dict("os.environ", {"OPENROUTER_API_KEY": "old-key"}):
+                self.assertEqual(setting("OPENROUTER_API_KEY"), "dotenv-key")
+
     def test_submit_poll_download_and_keep_key_server_side(self):
         session = FakeSession([{"status": "in_progress"}, {"status": "completed"}])
         provider = OpenRouterVideoProvider("secret", session=session)
@@ -80,6 +88,33 @@ class OpenRouterVideoTests(unittest.TestCase):
         session.request = lambda *args, **kwargs: FakeResponse({"id": "https://evil.example"})
         with self.assertRaises(VideoServiceError):
             OpenRouterVideoProvider("secret", session=session).submit({"prompt": "football"})
+
+    def test_payment_required_explains_why_no_job_was_created(self):
+        session = FakeSession([])
+        def rejected(*args, **kwargs):
+            response = Response()
+            response.status_code = 402
+            raise HTTPError(response=response)
+        session.request = rejected
+        with self.assertRaisesRegex(VideoServiceError, "HTTP 402.*余额"):
+            OpenRouterVideoProvider("secret", session=session).submit({"prompt": "football"})
+
+    def test_missing_remote_job_becomes_terminal_failure(self):
+        session = FakeSession([])
+        def missing(*args, **kwargs):
+            response = Response()
+            response.status_code = 404
+            raise HTTPError(response=response)
+        session.request = missing
+        provider = OpenRouterVideoProvider("secret", session=session)
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            job = {"provider": "openrouter", "status": "queued", "remote_job_id": "remote123"}
+            (folder / "video_job.json").write_text(json.dumps(job), encoding="utf-8")
+            result = provider.poll(job, folder, "local-id")
+            self.assertEqual(result["status"], "failed")
+            self.assertIn("HTTP 404", result["error"])
+            self.assertEqual(provider.poll(job, folder, "local-id")["status"], "failed")
 
 
 if __name__ == "__main__":

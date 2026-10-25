@@ -2,6 +2,8 @@
 
 import math
 
+from scripts.player_names import PLAYER_NAMES
+
 
 def lerp(a, b, weight):
     return [round(x + (y - x) * weight, 4) for x, y in zip(a, b)]
@@ -23,7 +25,7 @@ def add_tracking(match, events, clips):
             special = {(9001, 9): 9101, (9001, 6): 9102, (9002, 0): 9201, (9002, 2): 9202}
             pid = special.get((team, i), team * 10 + i)
             entry = dict(existing.get(pid, {
-                "player": {"id": pid, "name": f"{'Harbor' if team == 9001 else 'Mountain'} Player {i+1}"},
+                "player": {"id": pid, "name": PLAYER_NAMES[team][i + 1]},
                 "team_id": team, "role": "goalkeeper" if i == 0 else "outfield",
             }))
             entry.update({"shirt_number": i + 1, "position": position})

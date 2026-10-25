@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {combinationAt} from "../web/pass_combination.mjs";
+import {combinationAt} from "../web/match_clock.mjs";
 
 const event=(id,team,type,player,recipient,outcome="Complete")=>({
   id,team:{id:team},type:{name:type},player:{id:player},

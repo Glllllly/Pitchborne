@@ -61,6 +61,15 @@ def build_tracks(match, events):
             elif kind == "Goal Keeper":
                 text = (f"{name} 把球挡在门外，这次射门没能改写比分。" if audience == "neutral" else
                         f"好样的！{name} 这一下守住了。" if ours else "我们的射门还是被门将扑住了。")
+            elif kind == "Kick Off":
+                if event["kick_off"].get("opening"):
+                    text = (f"比赛开始！{name} 在中圈开球，双方已经站好阵型。" if audience == "neutral" else
+                            f"开球了！{name} 先把球交给队友，我们开始组织进攻。" if ours else
+                            "比赛开始，对方从中圈开球，我们先稳住阵型。")
+                else:
+                    text = (f"双方回到中圈，{name} 为失球方重新开球，比赛继续。" if audience == "neutral" else
+                            f"回到中圈，{name} 开球了，我们重新组织进攻！" if ours else
+                            "对方从中圈重新开球，我们继续保持压迫。")
             elif kind == "Full Time":
                 text = (f"全场结束！比分 {score[home]} 比 {score[away]}。" if audience == "neutral" else
                         f"比赛结束！我们 {'赢了' if score[supported] > score[away if supported == home else home] else '输了' if score[supported] < score[away if supported == home else home] else '打平了'}，比分 {score[home]} 比 {score[away]}。")
@@ -120,6 +129,15 @@ def build_english_tracks(match, events):
             elif kind == "Goal Keeper":
                 text = (f"{name} holds the shot; the score stays the same." if audience == "neutral" else
                         f"Brilliant save by {name}!" if ours else "Their keeper denies our shot.")
+            elif kind == "Kick Off":
+                if event["kick_off"].get("opening"):
+                    text = (f"We're underway! {name} kicks off from the centre circle." if audience == "neutral" else
+                            f"Here we go! {name} starts the match for us." if ours else
+                            "We're underway; they take the opening kick.")
+                else:
+                    text = (f"Back to the centre circle. {name} restarts for the team that conceded." if audience == "neutral" else
+                            f"{name} gets us going again from the centre spot." if ours else
+                            "They restart from the centre circle; stay alert.")
             elif kind == "Full Time":
                 text = (f"Full time! {score[home]}–{score[away]}." if audience == "neutral" else
                         f"Full time! {'We win' if score[supported] > score[away if supported == home else home] else 'We lose' if score[supported] < score[away if supported == home else home] else 'It ends level'}, {score[home]}–{score[away]}.")

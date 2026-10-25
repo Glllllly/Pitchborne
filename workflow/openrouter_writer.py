@@ -3,12 +3,14 @@
 from collections import OrderedDict
 import json
 import logging
+import os
 import shutil
 import subprocess
 import threading
 import time
 
 from workflow.pipeline import ROOT
+from workflow.openrouter_video import setting
 
 LOG = logging.getLogger(__name__)
 
@@ -33,6 +35,7 @@ class OpenRouterInsightWriter:
             process = subprocess.Popen(
                 self.command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                 encoding="utf-8", cwd=ROOT,
+                env={**os.environ, "OPENROUTER_API_KEY": setting("OPENROUTER_API_KEY")},
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
             deadline = time.monotonic() + self.config["timeoutMs"] / 1000 + 5
@@ -83,6 +86,7 @@ def configured_writer():
     try:
         command = [node, f"--env-file-if-exists={ROOT / '.env'}", str(ROOT / "adapters/openrouter.mjs"), "--check"]
         result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", timeout=10,
+                                env={**os.environ, "OPENROUTER_API_KEY": setting("OPENROUTER_API_KEY")},
                                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         config = json.loads(result.stdout)
         if result.returncode == 0 and config.get("configured"):

@@ -162,11 +162,15 @@ def generate_commentary(context, scene, language, profile=None):
     shot = context["shot"]
     outcome = scene["facts"]["outcome"]
     name = shot["player"]["name"]
-    text = (
-        f"{name} 接球推进后右脚射门，{RESULTS[outcome][1]}。"
-        if language == "zh" else
-        f"{name} receives the pass, carries forward and shoots with the right foot. {RESULTS[outcome][2]}"
-    )
+    localized = {
+        "zh": f"{name} 接球推进后右脚射门，{RESULTS[outcome][1]}。",
+        "en": f"{name} receives the pass, carries forward and shoots with the right foot. {RESULTS[outcome][2]}",
+        "es": f"{name} recibe el pase, avanza y remata con la derecha. " +
+              {"Goal": "¡Gol!", "Saved": "El portero detiene el tiro.", "Off T": "El tiro se va fuera."}[outcome],
+        "fr": f"{name} reçoit la passe, avance et frappe du pied droit. " +
+              {"Goal": "But !", "Saved": "Le gardien repousse le tir.", "Off T": "Le tir passe à côté."}[outcome],
+    }
+    text = localized[language]
     profile = profile or audience_profile(context, "neutral", scene["pov"])
     if profile["audience"] != "neutral":
         attacking = profile["pov"] == "striker"
@@ -185,6 +189,26 @@ def generate_commentary(context, scene, language, profile=None):
                                "A sigh of relief. Their shot goes wide; the score stays unchanged."),
         }
         text = phrases[(outcome, attacking)][0 if language == "zh" else 1]
+        if language in ("es", "fr"):
+            reactions = {
+                "es": {
+                    ("Goal", True): "¡Gooool! ¡Nuestro delantero marca; a celebrarlo!",
+                    ("Goal", False): "Nos marcan. Duele, pero hay que reaccionar.",
+                    ("Saved", True): "¡Qué pena! El portero detiene nuestro remate.",
+                    ("Saved", False): "¡Gran parada! Nuestro portero mantiene el resultado.",
+                    ("Off T", True): "¡Qué pena! Nuestro tiro se va fuera.",
+                    ("Off T", False): "Fallan el remate; respiramos.",
+                },
+                "fr": {
+                    ("Goal", True): "Buuut ! Notre attaquant marque, on peut célébrer !",
+                    ("Goal", False): "On encaisse un but. Il faut réagir.",
+                    ("Saved", True): "Dommage ! Le gardien repousse notre frappe.",
+                    ("Saved", False): "Quel arrêt ! Notre gardien préserve le score.",
+                    ("Off T", True): "Dommage ! Notre tir passe à côté.",
+                    ("Off T", False): "Leur tir passe à côté ; on peut souffler.",
+                },
+            }
+            text = reactions[language][(outcome, attacking)]
     return {
         "language": language,
         "generator": "deterministic-template-v1",
@@ -217,7 +241,7 @@ def validate_outputs(context, scene, request, commentary):
 
 
 def run(clip_id, pov, language, data_dir, output_dir, provider=None, audience="neutral"):
-    if pov not in ("striker", "goalkeeper") or language not in ("zh", "en"):
+    if pov not in ("striker", "goalkeeper") or language not in ("zh", "en", "es", "fr"):
         raise ValueError("Unsupported POV or language")
     context = load_context(data_dir, clip_id)
     profile = audience_profile(context, audience, pov)
@@ -254,7 +278,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clip", default="saved")
     parser.add_argument("--pov", choices=["striker", "goalkeeper"], default="striker")
-    parser.add_argument("--language", choices=["zh", "en"], default="zh")
+    parser.add_argument("--language", choices=["zh", "en", "es", "fr"], default="zh")
     parser.add_argument("--audience", choices=["neutral", "home", "away"], default="neutral")
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data" / "synthetic")
     parser.add_argument("--output", type=Path)

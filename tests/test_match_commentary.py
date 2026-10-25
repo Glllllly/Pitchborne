@@ -2,6 +2,7 @@ import unittest
 
 from scripts.generate_match import generate
 from workflow.match_commentary import build_tracks, build_english_tracks
+from workflow.commentary_romance import build_romance_tracks
 
 
 class CommentaryTests(unittest.TestCase):
@@ -37,6 +38,36 @@ class CommentaryTests(unittest.TestCase):
         index = next(i for i, event in enumerate(events)
                      if event.get("shot", {}).get("outcome", {}).get("name") == "Goal")
         self.assertEqual(len({tracks[side][index]["text"] for side in tracks}), 3)
+
+    def test_spanish_and_french_tracks_keep_timing_lineups_and_fan_reactions(self):
+        match, events, _ = generate(7)
+        goal_index = next(i for i, event in enumerate(events)
+                          if event.get("shot", {}).get("outcome", {}).get("name") == "Goal")
+        for language in ("es", "fr"):
+            tracks = build_romance_tracks(match, events, language)
+            self.assertEqual(set(tracks), {"home", "away", "neutral"})
+            for lines in tracks.values():
+                self.assertEqual([line["event_id"] for line in lines], [event["id"] for event in events])
+                self.assertEqual(len(lines[0]["intro"]), 3)
+                self.assertEqual(sum("summary" in line for line in lines), 9)
+                self.assertTrue(lines[-1]["text"])
+            self.assertEqual(len({tracks[side][goal_index]["text"] for side in tracks}), 3)
+            earlier = build_romance_tracks(match, events[:240], language)
+            self.assertEqual(tracks["neutral"][:240], earlier["neutral"])
+
+    def test_goal_restart_has_timed_commentary_in_both_languages(self):
+        match, events, _ = generate(7)
+        index = next(i for i, event in enumerate(events) if event["type"]["name"] == "Kick Off")
+        for builder in (build_tracks, build_english_tracks):
+            tracks = builder(match, events)
+            self.assertTrue(all(tracks[side][index]["text"] for side in tracks))
+            self.assertEqual({tracks[side][index]["event_id"] for side in tracks}, {events[index]["id"]})
+
+    def test_opening_call_is_not_described_as_a_restart_after_a_goal(self):
+        match, events, _ = generate(7)
+        self.assertEqual(events[0]["type"]["name"], "Kick Off")
+        self.assertIn("比赛开始", build_tracks(match, events)["neutral"][0]["text"])
+        self.assertIn("underway", build_english_tracks(match, events)["neutral"][0]["text"])
 
     def test_variety_and_past_only_writing(self):
         match, events, _ = generate(7)

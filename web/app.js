@@ -1,10 +1,9 @@
-import {buildMotionPlan,keyPlayerIds,replayMinutes} from "./match_clock.mjs";
-import {runningPose,playerMotion,coordinatedMotion} from "./pitch_motion.mjs";
+import {buildMotionPlan,keyPlayerIds,replayMinutes,combinationAt} from "./match_clock.mjs";
+import {runningPose,playerMotion,coordinatedMotion,formationGeometry} from "./pitch_motion.mjs";
 import {summarizeMatch} from "./match_stats.mjs";
-import {combinationAt} from "./pass_combination.mjs";
 const $ = id => document.getElementById(id);
 const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
-const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
+const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", "Kick Off":"中圈开球", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
 let schedule=[],motionPlan=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
 let pitchAnimation=null, lastPitchEvent=null, pitchBall=null;
@@ -46,8 +45,12 @@ async function updateLiveInsight(event){
     return;
   }
   $("insight").hidden=false;
-  $("insight-title").textContent=`${event.minute}′ · 正在解读当前动作`;
-  $("insight-text").textContent="结合当前事件与球场位置，整理分析依据…";
+  const pending={zh:["正在解读当前动作","结合当前事件与球场位置，整理分析依据…"],
+    en:["Reading the current play","Checking the event and pitch position…"],
+    es:["Analizando la jugada","Revisando el evento y su posición en el campo…"],
+    fr:["Analyse de l'action","Examen de l'événement et de sa position sur le terrain…"]}[$("live-language").value];
+  $("insight-title").textContent=`${event.minute}′ · ${pending[0]}`;
+  $("insight-text").textContent=pending[1];
   const controller=new AbortController();insightController=controller;
   let baselineShown=false;
   const params={event_id:event.id,audience:audience(),mode:$("mode").value};
@@ -81,6 +84,36 @@ async function updateLiveInsight(event){
   }
 }
 function displayLiveInsight(insight){
+    const language=$("live-language").value;
+    if(language==="es"||language==="fr"){
+      const fact=insight.facts;
+      const translations={
+        es:{heading:"LECTURA DEL PARTIDO · POR QUÉ IMPORTA",source:"Análisis de los eventos",verdict:"LECTURA DE LA JUGADA",
+          goal:["¡Una ocasión que termina en gol!","El marcador cambia; esta acción ya tiene un impacto decisivo."],
+          saved:["¡Disparo a puerta y parada!","La jugada creó una ocasión, pero el portero evitó el gol."],
+          wide:["Remate sin gol","La jugada terminó en tiro, pero el balón no fue a puerta."],
+          win:["Cambio de posesión","La recuperación corta el ataque rival y abre una nueva jugada."],
+          pressure:["Presión sobre el balón","El defensor reduce el espacio, aunque la posesión aún no ha cambiado."]},
+        fr:{heading:"LECTURE DU MATCH · POURQUOI C'EST IMPORTANT",source:"Analyse des événements",verdict:"LECTURE DE L'ACTION",
+          goal:["Une occasion transformée en but !","Le score change : cette action pèse directement sur le match."],
+          saved:["Tir cadré et arrêt !","L'action a créé une occasion, mais le gardien a empêché le but."],
+          wide:["Un tir sans but","L'action s'achève sur une frappe qui manque le cadre."],
+          win:["Changement de possession","La récupération stoppe l'attaque adverse et lance une nouvelle phase."],
+          pressure:["Pression sur le ballon","Le défenseur ferme l'espace, sans encore récupérer le ballon."]},
+      };
+      const words=translations[language];
+      const category=fact.event_type==="Shot"?({Goal:"goal",Saved:"saved"}[fact.outcome]||"wide"):
+        fact.event_type==="Pressure"?"pressure":"win";
+      const [title,explanation]=words[category];
+      $("insight-heading-label").textContent=words.heading;
+      $("insight-source").textContent=words.source;
+      $("insight-title").textContent=`${insight.render.match_minute}′ · ${title}`;
+      $("insight-text").hidden=false;$("insight-text").textContent=explanation;
+      $("insight-verdict-label").textContent=words.verdict;
+      $("insight-verdict").textContent=title;$("insight-why").textContent=explanation;
+      $("insight-analyst").hidden=true;$("insight-evidence").hidden=true;
+      return;
+    }
     const english=$("live-language").value==="en";
     const fact=insight.facts;
     const context=insight.context||{}, analysis=insight.analysis||{};
@@ -208,7 +241,9 @@ function start(){
   updatePlayback();
 }
 function renderCommentary(){
-  const lines=($('live-language').value==='en'?data.commentary_en:data.commentary)?.[audience()]||[];
+  const language=$("live-language").value;
+  const tracks={zh:data.commentary,en:data.commentary_en,es:data.commentary_es,fr:data.commentary_fr};
+  const lines=tracks[language]?.[audience()]||[];
   const feed=$("commentary-history");
   const trackKey=`${audience()}:${$('live-language').value}:${$("mode").value}`;
   if(commentaryAudience!==trackKey || cursor<commentaryCursor){
@@ -220,8 +255,10 @@ function renderCommentary(){
       const row=document.createElement("div");row.className=`commentary-card ${kind}`.trim();
       if(eventId)row.dataset.eventId=eventId;
       const time=document.createElement("time");
-      const section=kind==="match-intro"?($("live-language").value==="en"?" · Team news":" · 赛前介绍")
-        :kind==="match-summary"?($("live-language").value==="en"?" · Match check-in":" · 阶段回顾"):"";
+      const sections={zh:["赛前介绍","阶段回顾"],en:["Team news","Match check-in"],
+        es:["Alineaciones","Balance del partido"],fr:["Compositions","Bilan du match"]};
+      const section=kind==="match-intro"?` · ${sections[language][0]}`
+        :kind==="match-summary"?` · ${sections[language][1]}`:"";
       time.textContent=`${Math.floor(line.match_second/60)}′${section}`;
       const text=document.createElement("p");text.textContent=content;
       row.append(time,text);feed.append(row);return row;
@@ -234,9 +271,11 @@ function renderCommentary(){
       if($("mode").value==="analyst"){
         const metric=data.events[index]?.kinematics;
         if(metric){const tag=document.createElement("small");tag.className="event-metric";
+          const metricLabels={zh:["传球","难度","射门球速","飞行"],en:["Pass","Difficulty","Shot speed","Flight"],
+            es:["Pase","Dificultad","Velocidad del tiro","Vuelo"],fr:["Passe","Difficulté","Vitesse du tir","Trajet"]}[language];
           tag.textContent=data.events[index].type.name==="Pass"
-            ?`传球 ${metric.ball_distance_m} m · ${metric.ball_speed_kmh} km/h · 难度 ${metric.pass_difficulty}/100`
-            :`射门球速 ${metric.ball_speed_kmh} km/h · 飞行 ${metric.ball_flight_seconds} s`;
+            ?`${metricLabels[0]} ${metric.ball_distance_m} m · ${metric.ball_speed_kmh} km/h · ${metricLabels[1]} ${metric.pass_difficulty}/100`
+            :`${metricLabels[2]} ${metric.ball_speed_kmh} km/h · ${metricLabels[3]} ${metric.ball_flight_seconds} s`;
           row.append(tag);}
       }
     }
@@ -246,7 +285,7 @@ function renderCommentary(){
   while(feed.children.length>50)feed.firstChild.remove();
   feed.scrollTop=feed.scrollHeight;
   const lastSpoken=lines.slice(0,cursor).reverse().map(line=>line.summary?.text||line.text||line.intro?.at(-1)).find(Boolean);
-  $("commentary-live-text").textContent=lastSpoken||($('live-language').value==='en'?"Kick-off coming up…":"即将开球……");
+  $("commentary-live-text").textContent=lastSpoken||({zh:"即将开球……",en:"Kick-off coming up…",es:"El partido está por comenzar…",fr:"Le coup d'envoi approche…"}[language]);
 }
 function renderLineups(){
   const positionNames={GK:"门将",LB:"左后卫",CB:"中后卫",RB:"右后卫",DM:"后腰",CM:"中场",LW:"左边锋",ST:"前锋",RW:"右边锋"};
@@ -278,9 +317,17 @@ function renderDataBoard(events){
   $("data-clock").textContent=`已播放 ${last?.minute||0}′ · 数据随直播更新`;
   const metrics=[
     ["进球","goals",value=>String(value)],
+    ["控球率 · 估算","possession",value=>`${Math.round(value*100)}%`],
     ["射门","shots",value=>String(value)],
     ["射正","shotsOnTarget",value=>String(value)],
+    ["禁区内射门","shotsInsideBox",value=>String(value)],
+    ["禁区外射门","shotsOutsideBox",value=>String(value)],
+    ["越位","offsides",value=>String(value)],
+    ["犯规","fouls",value=>String(value)],
+    ["黄牌","yellowCards",value=>String(value)],
+    ["红牌","redCards",value=>String(value)],
     ["关键传球","keyPasses",value=>String(value)],
+    ["长传","longPasses",value=>String(value)],
     ["成功传球","completedPasses",value=>String(value)],
     ["传球成功率","passAccuracy",value=>`${Math.round(value*100)}%`],
     ["平均传球球速 · 合成","averagePassSpeed",value=>`${Math.round(value)} km/h`],
@@ -306,6 +353,7 @@ function renderDataBoard(events){
 function render(){
   updatePlayback();
   applyAudience();
+  $("pitch").classList.toggle("show-formations",$("mode").value==="analyst");
   const events=seen(), shots=events.filter(e=>e.type.name==="Shot"), goals=shots.filter(e=>e.shot.outcome.name==="Goal");
   const last=events.at(-1);
   const homeId=data.match.home_team.id;
@@ -341,6 +389,7 @@ function pitchState(event){
   if(!clip){
     const active=new Set([event.player.id]);
     if(event.pass)active.add(event.pass.recipient.id);
+    if(event.kick_off)active.add(event.kick_off.recipient.id);
     return {points:event.tracking.start.map(p=>({
       player:data.match.players.find(entry=>entry.player.id===p.player_id).player,
       location:p.location,teammate:p.team_id===data.match.home_team.id
@@ -380,6 +429,7 @@ function pitchState(event){
   }
   const active=new Set([event.player.id]);
   if(event.pass)active.add(event.pass.recipient.id);
+  if(event.kick_off)active.add(event.kick_off.recipient.id);
   if(event.shot)shot.shot.freeze_frame.filter(p=>p.position.name==="Goalkeeper").forEach(p=>active.add(p.player.id));
   if(event.tracking){
     return {points:event.tracking.start.map(p=>({
@@ -390,6 +440,9 @@ function pitchState(event){
   return {points:[...positions.values()],active};
 }
 function renderPitch(event){
+  // Commentary and video status can rerender the page mid-event. Keep the
+  // existing pitch timeline running instead of freezing it partway through.
+  if(event&&lastPitchEvent===event.id&&$("markers").childElementCount)return;
   cancelAnimationFrame(pitchAnimation);
   const group=$("markers");
   const displayPoint=location=>event.team.id===data.match.away_team.id
@@ -405,22 +458,38 @@ function renderPitch(event){
     if(text)node.textContent=text;group.append(node);return node;
   };
   const {points,active}=pitchState(event);
+  const formationLayer=svg("g",{class:"formation-overlay","aria-hidden":"true"});
+  const formationShapes=[data.match.home_team,data.match.away_team].map(team=>{
+    const color=team.id===data.match.home_team.id?"#c4f277":"#f4ae8e";
+    const triangle=svg("polygon",{fill:color,"fill-opacity":".11",stroke:color,
+      "stroke-opacity":".8","stroke-width":".55","stroke-linejoin":"round"});
+    const back=svg("polyline",{fill:"none",stroke:color,"stroke-opacity":".78",
+      "stroke-width":".7","stroke-linecap":"round","stroke-linejoin":"round"});
+    const front=svg("polyline",{fill:"none",stroke:color,"stroke-opacity":".78",
+      "stroke-width":".7","stroke-linecap":"round","stroke-linejoin":"round"});
+    formationLayer.append(triangle,back,front);
+    return {teamId:team.id,triangle,back,front};
+  });
+  function updateFormations(){
+    for(const shape of formationShapes){
+      const geometry=formationGeometry(data.match.players,pitchPositions,shape.teamId);
+      const points=band=>geometry[band].map(([x,y])=>`${x},${y}`).join(" ");
+      shape.back.setAttribute("points",points("back"));
+      shape.front.setAttribute("points",points("front"));
+      shape.triangle.setAttribute("points",points("mid"));
+    }
+  }
   const combination=combinationAt(data.events,cursor-1);
   for(const id of combination.players)active.add(id);
   if(combination.passes.length>=2){
-    for(const pass of combination.passes.filter(pass=>pass.id!==event.id)){
-      const from=displayPoint(pass.location),to=displayPoint(pass.pass.end_location);
-      svg("line",{"data-role":"combination-route",x1:from[0],y1:from[1],x2:to[0],y2:to[1],
-        stroke:"#ffe99a","stroke-width":".42","stroke-dasharray":"1.3 .8",opacity:".54"});
-    }
     svg("text",{x:4,y:7,fill:"#ffe99a","font-size":"2.5","font-weight":"700"},
       `${combination.passes.length} 脚连续传球 · ${combination.players.size} 人参与`);
   }
-  const end=event.pass?.end_location || event.carry?.end_location || event.shot?.end_location;
-  if(end){
+  const end=event.pass?.end_location || event.carry?.end_location || event.shot?.end_location || event.kick_off?.end_location;
+  if(event.type.name==="Shot"&&end){
     const from=displayPoint(event.location),to=displayPoint(end);
     svg("line",{x1:from[0],y1:from[1],x2:to[0],y2:to[1],stroke:"#e6ff8c","stroke-width":"1.6",opacity:".15"});
-    svg("line",{"data-role":"event-route",x1:from[0],y1:from[1],x2:to[0],y2:to[1],stroke:"#f0ffc0","stroke-width":".55","stroke-dasharray":event.type.name==="Carry"?".6 .7":"2 .8","marker-end":"url(#route-arrow)"});
+    svg("line",{"data-role":"event-route",x1:from[0],y1:from[1],x2:to[0],y2:to[1],stroke:"#f0ffc0","stroke-width":".55","stroke-dasharray":"2 .8","marker-end":"url(#route-arrow)"});
     svg("circle",{cx:to[0],cy:to[1],r:"1.5",fill:"none",stroke:"#fff9c2","stroke-width":".25"});
   }
   const movingPlayers=[];
@@ -437,11 +506,10 @@ function renderPitch(event){
       "stroke-width":inCombination?".38":".22",opacity:".9"});
     const circle=svg("circle",{"data-player-id":point.player.id,"data-active":isActive,cx:point.location[0],cy:point.location[1],r:1.5,fill:point.teammate?"#c4f277":"#f4ae8e",stroke:"#142219","stroke-width":".25",opacity:isActive?1:.45});
     const title=document.createElementNS(circle.namespaceURI,"title");title.textContent=point.player.name;circle.append(title);
-    const role=data.match.players.find(p=>p.player.id===point.player.id)?.role;
     const entry=data.match.players.find(p=>p.player.id===point.player.id);
-    const roleName={striker:"射手",goalkeeper:"门将",defender:"后卫",midfielder:"传球者"}[role] || entry?.position || "球员";
-    const labelY=point.location[1]+(role==="defender"?-4:role==="striker"?4.5:role==="goalkeeper"?-3:3.4);
-    if(isActive)svg("text",{x:point.location[0],y:labelY,"text-anchor":"middle",fill:"#ffffff","font-size":"2.4","paint-order":"stroke",stroke:"#163025","stroke-width":".6"},`${roleName} ${point.player.name.split(" ")[0]}`);
+    const position=entry?.position||"";
+    const labelY=point.location[1]+(position==="GK"?-3:["LB","CB","RB"].includes(position)?-4:position==="ST"?4.5:3.4);
+    if(isActive)svg("text",{x:point.location[0],y:labelY,"text-anchor":"middle",fill:"#ffffff","font-size":"2.4","paint-order":"stroke",stroke:"#163025","stroke-width":".6"},`${position} ${point.player.name.split(" ").at(-1)}`.trim());
     else svg("text",{x:point.location[0],y:point.location[1]+.65,"text-anchor":"middle",fill:"#ffffff",opacity:.75,"font-size":"1.9"},String(entry?.shirt_number||""));
     const children=Array.from(group.children).slice(firstChild);
     const wrapper=svg("g",{"data-moving-player":point.player.id});
@@ -461,7 +529,7 @@ function renderPitch(event){
     const nominalDuration=plan.durationMs;
     const duration=shouldAnimate?Math.max(100,nominalDuration/Number($("speed").value)*.97):0;
     const ballStart=displayPoint(event.tracking.ball_start),ballEnd=displayPoint(event.tracking.ball_end);
-    const ballFrom=pitchBall||ballStart;
+    const ballFrom=event.type.name==="Kick Off"?ballStart:(pitchBall||ballStart);
     const setupShare=plan.setupShare;
     const flightShare=event.type.name==="Pass"?.55:event.type.name==="Shot"?.45:.9;
     const arrivalAt=setupShare+(1-setupShare)*flightShare;
@@ -474,16 +542,20 @@ function renderPitch(event){
         pitchPositions.set(id,current);
         wrapper.setAttribute("transform",`translate(${current[0]-from[0]} ${current[1]-from[1]})`);
       });
+      updateFormations();
       pitchBall=coordinatedMotion(ballFrom,ballStart,ballEnd,t,setupShare,arrivalAt);
       football.setAttribute("transform",`translate(${pitchBall[0]} ${pitchBall[1]})`);
       if(t<1)pitchAnimation=requestAnimationFrame(animate);
     }
     animate(began);
   }
-  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：${event.pass.outcome.name==="Complete"?"传球到位":"传球被拦截"}。虚线连接起点与落点。`
+  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：${event.pass.outcome.name==="Complete"?"传球到位":"传球被拦截"}。`
     :event.type.name==="Carry"?`${event.player.name} 带球推进，足球标记在本次推进终点。`
     :event.type.name==="Shot"?`${event.player.name} 起脚射门 → ${labels[event.shot.outcome.name]}。射手与门将高亮，足球沿射门路线移动。`
     :event.type.name==="Goal Keeper"?`${event.player.name} 完成扑救。门将和足球位于扑救位置，其余球员保留模拟站位。`
+    :event.type.name==="Kick Off"?event.kick_off?.opening
+      ?`${event.player.name} 从中圈开球，比赛开始。`
+      :`失球方回到中圈，由 ${event.player.name} 开球，比赛继续。`
     :event.type.name==="Full Time"?"90 分钟比赛结束。"
     :event.type.name==="Interception"?`${event.player.name} 拦截了对方传球。`
     :event.type.name==="Pressure"?`${event.player.name} 对持球者施压。`
@@ -530,6 +602,11 @@ function warmHighlight(clip,retry=false){
       if(entry.status==="failed")entry.error=entry.artifacts["video_job.json"].error||"视频生成失败";
     }catch(error){entry.status="failed";entry.error=error.message||"视频生成失败";}
     finally{if(entry.ownsSlot){entry.ownsSlot=false;releaseVideoSlot();}}
+    if(entry.status==="failed"){
+      const status=$("video-generation-status");
+      status.textContent=`第一视角视频未生成：${entry.error}。比赛与文字解说继续播放。`;
+      status.hidden=false;
+    }
     refreshReadyHighlight();
     return entry;
   })();
@@ -639,6 +716,7 @@ $("download").onclick=()=>{if(!prepared)return;const url=URL.createObjectURL(new
 async function loadMatch(){
   stop();clearResult();insightController?.abort();insightKey=null;insightCache.clear();
   $("error").hidden=true;
+  $("video-generation-status").hidden=true;
   try{
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");

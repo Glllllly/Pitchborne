@@ -1,6 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {interpolatePose,runningPose,coordinatedMotion,setupShareFor,playerMotion,pitchDistanceMetres} from "../web/pitch_motion.mjs";
+import {interpolatePose,runningPose,coordinatedMotion,setupShareFor,playerMotion,pitchDistanceMetres,formationGeometry} from "../web/pitch_motion.mjs";
+
+test("formation bands follow current player positions and ignore the goalkeeper",()=>{
+  const entries=[
+    [1,1,"GK"],[2,1,"LB"],[3,1,"CB"],[4,1,"CB"],[5,1,"RB"],
+    [6,1,"DM"],[7,1,"CM"],[8,1,"CM"],[9,1,"LW"],[10,1,"ST"],[11,1,"RW"],
+    [12,2,"CB"]
+  ].map(([id,team_id,position])=>({player:{id},team_id,position}));
+  const positions=new Map(entries.map(({player})=>[player.id,[player.id,80-player.id]]));
+  const first=formationGeometry(entries,positions,1);
+  assert.equal(first.back.length,4);
+  assert.equal(first.mid.length,3);
+  assert.equal(first.front.length,3);
+  assert.ok(!Object.values(first).flat().some(point=>point[0]===1||point[0]===12));
+  positions.set(7,[66,25]);
+  assert.ok(formationGeometry(entries,positions,1).mid.some(point=>point[0]===66));
+});
 
 test("key player runs through the start of the action without a scene cut",()=>{
   const previous=[10,40],start=[75,40],end=[80,42],setup=.85;

@@ -10,7 +10,9 @@ from uuid import NAMESPACE_URL, uuid5
 
 from workflow.pipeline import ROOT
 from workflow.match_commentary import build_tracks, build_english_tracks
+from workflow.commentary_romance import build_romance_tracks
 from workflow.kinematics import annotate_ball_event
+from scripts.player_names import PLAYER_NAMES
 
 SAMPLE = ROOT / "data" / "synthetic" / "match.json"
 FORMATION = {
@@ -31,7 +33,7 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 12
+    match["generator_version"] = 18
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"
@@ -39,12 +41,15 @@ def generate(seed):
     match["tracking"]["limitations"] = "Role-based 4-3-3 event snapshots; no continuous optical tracking, collision or offside model."
     match["coordinate_system"]["display_orientation"] = "home attacks right; away attacks left; away event coordinates rotate 180 degrees for display"
     roster = match["players"]
+    for entry in roster:
+        entry["player"]["name"] = PLAYER_NAMES[entry["team_id"]][entry["shirt_number"]]
     teams = [match["home_team"], match["away_team"]]
     by_team = {team["id"]: [p for p in roster if p["team_id"] == team["id"]] for team in teams}
     events, candidates = [], []
     score = [0, 0]
     possession = 0
     forced_team_i = None
+    restart_team_id = None
 
     def event_id(index):
         return str(uuid5(NAMESPACE_URL, f"pilot-full-match-v1/{seed}/{index}"))
@@ -52,7 +57,8 @@ def generate(seed):
     def tracking(event, target):
         own = event["team"]["id"]
         active = event["player"]["id"]
-        receiver = event.get("pass", {}).get("recipient", {}).get("id")
+        receiver = (event.get("pass", {}).get("recipient", {}).get("id") or
+                    event.get("kick_off", {}).get("recipient", {}).get("id"))
         x, y = event["location"]
         # Locations are expressed in the acting team's attacking direction.
         # Build each side in its own 4-3-3, then rotate the defending side.
@@ -64,7 +70,12 @@ def generate(seed):
             shirt = entry["shirt_number"]
             base_x, base_y = FORMATION[shirt]
             ball_x, ball_y = anchor if same else (120 - x, 80 - y)
-            if shirt == 1:
+            if event["type"]["name"] == "Kick Off":
+                # Before the restart every outfield player stays in their own
+                # half; opponents also remain outside the centre circle.
+                own_x = clamp(base_x * .65 + 3, 5, 58 if same else 50)
+                own_y = clamp(base_y + math.sin(pid * .17) * .8, 5, 75)
+            elif shirt == 1:
                 own_x = clamp(6 + max(0, ball_x - 55) * .10, 3, 13)
                 own_y = clamp(40 + (ball_y - 40) * .08, 36, 44)
             else:
@@ -116,17 +127,36 @@ def generate(seed):
         events.append(item)
         return item
 
-    clock = 0
+    team_i = rng.randrange(2)
+    opening_team = teams[team_i]
+    opening_squad = by_team[opening_team["id"]]
+    opening_kicker = next(entry["player"] for entry in opening_squad if entry["shirt_number"] == 10)
+    opening_receiver = next(entry["player"] for entry in opening_squad if entry["shirt_number"] == 6)
+    possession = 1
+    emit("Kick Off", 0, opening_team, opening_kicker, [60, 40],
+         {"kick_off": {"opening": True, "recipient": opening_receiver,
+                       "end_location": [57, 40]}}, [57, 40])
+    clock = 1
+    first_play = True
     while clock < 5370:
-        possession += 1
-        team_i = (rng.randrange(2) if possession == 1 else
-                  forced_team_i if forced_team_i is not None else
-                  1 - team_i if rng.random() < .67 else team_i)
+        if first_play:
+            first_play = False
+        else:
+            possession += 1
+            team_i = (forced_team_i if forced_team_i is not None else
+                      1 - team_i if rng.random() < .67 else team_i)
         forced_team_i = None
         team = teams[team_i]
         other_team = teams[1 - team_i]
+        previous_restart_team_id = restart_team_id
+        restart_team_id = None
         squad = [p["player"] for p in by_team[team["id"]] if p["position"] != "GK"]
         opponents = [p["player"] for p in by_team[other_team["id"]] if p["position"] != "GK"]
+        if previous_restart_team_id is not None and team["id"] != previous_restart_team_id:
+            winner = next(entry["player"] for entry in by_team[team["id"]]
+                          if entry["shirt_number"] == 6)
+            emit("Interception", clock - 3, team, winner, [60, 40],
+                 {"play_pattern": {"name": "After Kick Off"}})
         x, y = rng.uniform(27, 69), rng.uniform(12, 68)
         passer_entry = min((p for p in by_team[team["id"]] if p["position"] != "GK"),
                            key=lambda p: abs(FORMATION[p["shirt_number"]][0] - x) + rng.uniform(0, 18))
@@ -171,7 +201,8 @@ def generate(seed):
             chain.append(challenge)
             if kind == "Tackle":
                 forced_team_i = 1 - team_i
-        if shot_chance and clock + 6 < 5400:
+        restart = None
+        if shot_chance and clock + 8 < 5400:
             keeper = next(p["player"] for p in by_team[other_team["id"]] if p["position"] == "GK")
             defender = rng.choice(opponents)
             if not {"Goal", "Saved", "Off T"}.issubset({c["result"] for c in candidates}):
@@ -201,7 +232,10 @@ def generate(seed):
                             "freeze_frame": freeze}}, end)
             chain.append(shot)
             if result == "Saved":
-                save = emit("Goal Keeper", clock + 6, other_team, keeper, end[:2],
+                # The shot endpoint is in the shooter's attacking direction;
+                # the keeper event uses the defending team's direction.
+                save_location = [round(120 - end[0], 2), round(80 - end[1], 2)]
+                save = emit("Goal Keeper", clock + 6, other_team, keeper, save_location,
                             {"goalkeeper": {"type": {"name": "Shot Saved"},
                                             "outcome": {"name": "Success"}}})
                 save["possession_team"] = team
@@ -209,10 +243,21 @@ def generate(seed):
                 chain.append(save)
             if result == "Goal":
                 score[team_i] += 1
+                possession += 1
+                restarting = by_team[other_team["id"]]
+                kicker = next(entry["player"] for entry in restarting if entry["shirt_number"] == 10)
+                recipient = next(entry["player"] for entry in restarting if entry["shirt_number"] == 6)
+                restart = emit("Kick Off", clock + 8, other_team, kicker, [60, 40],
+                               {"kick_off": {"after_goal_id": shot["id"], "recipient": recipient,
+                                             "end_location": [57, 40]}}, [57, 40])
+                restart_team_id = other_team["id"]
             candidates.append({"chain": chain[:], "shot": shot, "before": before,
                                "after": score.copy(), "result": result})
         for i, item in enumerate(chain):
             item["related_events"] = [other["id"] for j, other in enumerate(chain) if abs(i-j) == 1]
+        if restart:
+            shot["related_events"].append(restart["id"])
+            restart["related_events"] = [shot["id"]]
         clock += rng.randint(16, 27)
 
     # A full-time marker makes the simulated 90-minute coverage explicit.
@@ -268,7 +313,9 @@ def save(seed, out=None):
     out.mkdir(parents=True, exist_ok=True)
     for name, value in (("match.json", match), ("events.json", events), ("clips.json", clips),
                         ("commentary.json", build_tracks(match, events)),
-                        ("commentary_en.json", build_english_tracks(match, events))):
+                        ("commentary_en.json", build_english_tracks(match, events)),
+                        ("commentary_es.json", build_romance_tracks(match, events, "es")),
+                        ("commentary_fr.json", build_romance_tracks(match, events, "fr"))):
         (out / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return out, match, events, clips
 

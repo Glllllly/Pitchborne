@@ -10,6 +10,16 @@ export function pitchDistanceMetres(a, b) {
   return Math.hypot((a[0] - b[0]) * 105 / 120, (a[1] - b[1]) * 68 / 80);
 }
 
+// Read the formation from roster positions, then place its lines at the
+// players' current animated locations rather than at a fixed kickoff shape.
+export function formationGeometry(roster, positions, teamId){
+  const bands={back:new Set(["LB","CB","RB"]),mid:new Set(["DM","CM"]),front:new Set(["LW","ST","RW"])};
+  return Object.fromEntries(Object.entries(bands).map(([name,roles])=>[
+    name,roster.filter(entry=>entry.team_id===teamId&&roles.has(entry.position))
+      .map(entry=>positions.get(entry.player.id)).filter(Boolean).sort((a,b)=>a[1]-b[1])
+  ]));
+}
+
 // Smoothstep reaches 1.5 times its average speed at the midpoint. Limit the
 // distance first so even that peak stays within the player's running speed.
 export function playerMotion(from, target, progress, durationMs, maxSpeedMps) {
