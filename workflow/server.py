@@ -70,6 +70,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
+        if path == "/healthz":
+            return self.respond(200, {"status": "ok"})
         video_match = re.fullmatch(r"/api/highlights/([0-9a-f-]{36})(/video)?", path)
         if video_match:
             local_id = video_match.group(1)
@@ -150,8 +152,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path not in ("/api/highlights/prepare", "/api/insights"):
             return self.respond(404, {"error": "Not found"})
-        # Local-only JSON endpoint; reject cross-origin browser requests.
-        if self.headers.get("Origin") not in (None, "http://" + self.headers.get("Host", "")):
+        # Same-host browser requests may arrive over HTTP locally or HTTPS behind Azure ingress.
+        host = self.headers.get("Host", "")
+        if self.headers.get("Origin") not in (None, f"http://{host}", f"https://{host}"):
             return self.respond(403, {"error": "Cross-origin request rejected"})
         try:
             size = int(self.headers.get("Content-Length", "0"))
@@ -205,11 +208,13 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed", type=int, default=7, help="deterministic match seed (default: 7)")
+    parser.add_argument("--host", default="127.0.0.1", help="listen address (default: local only)")
+    parser.add_argument("--port", type=int, default=8000, help="listen port (default: 8000)")
     args = parser.parse_args()
     MATCH_SEED = args.seed
     match_data()
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
-    print("Pitchborne: http://127.0.0.1:8000", flush=True)
+    server = ThreadingHTTPServer((args.host, args.port), Handler)
+    print(f"Pitchborne: http://{args.host}:{args.port}", flush=True)
     print(f"Synthetic match seed: {MATCH_SEED}", flush=True)
     print("Insights: OpenRouter enabled" if INSIGHT_WRITER else "Insights: rule baseline (OpenRouter not configured)", flush=True)
     print("Video: OpenRouter enabled" if VIDEO_PROVIDER else "Video: dry run (OpenRouter not configured)", flush=True)

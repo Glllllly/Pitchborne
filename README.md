@@ -60,6 +60,8 @@ python -m workflow.server --seed 42
 
 To generate the data without launching the UI, run `python -m scripts.generate_match --seed 42`. The generated match, events, clips, and language tracks are written under `data/matches/seed-<seed>/`.
 
+For a hosted demo, see the [Azure Container Apps deployment guide](docs/azure-deploy.md).
+
 ## Behind the scenes
 
 Pitchborne follows one event-to-experience pipeline:

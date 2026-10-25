@@ -2,6 +2,7 @@ import json
 import threading
 import unittest
 from http.server import ThreadingHTTPServer
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from workflow.server import Handler
@@ -27,6 +28,19 @@ class InsightEndpointTests(unittest.TestCase):
                 insight = json.load(response)
             self.assertEqual(insight["event_id"], shot["id"])
             self.assertTrue(insight["text"])
+
+            with urlopen(base + "/healthz") as response:
+                self.assertEqual(json.load(response), {"status": "ok"})
+
+            request.add_header("Origin", base.replace("http://", "https://"))
+            with urlopen(request) as response:
+                self.assertEqual(json.load(response)["event_id"], shot["id"])
+
+            request.add_header("Origin", "https://another.example")
+            with self.assertRaises(HTTPError) as rejected:
+                urlopen(request)
+            self.assertEqual(rejected.exception.code, 403)
+            rejected.exception.close()
         finally:
             server.shutdown()
             server.server_close()
