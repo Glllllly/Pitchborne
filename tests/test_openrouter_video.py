@@ -96,7 +96,7 @@ class OpenRouterVideoTests(unittest.TestCase):
             response.status_code = 402
             raise HTTPError(response=response)
         session.request = rejected
-        with self.assertRaisesRegex(VideoServiceError, "HTTP 402.*余额"):
+        with self.assertRaisesRegex(VideoServiceError, "HTTP 402.*credits"):
             OpenRouterVideoProvider("secret", session=session).submit({"prompt": "football"})
 
     def test_missing_remote_job_becomes_terminal_failure(self):

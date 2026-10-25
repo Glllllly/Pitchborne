@@ -2,8 +2,8 @@ import {buildMotionPlan,keyPlayerIds,replayMinutes,combinationAt} from "./match_
 import {runningPose,playerMotion,coordinatedMotion,formationGeometry} from "./pitch_motion.mjs";
 import {summarizeMatch} from "./match_stats.mjs";
 const $ = id => document.getElementById(id);
-const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
-const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", "Kick Off":"中圈开球", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
+const labels = {Goal:"Goal", "Off T":"Off target", Saved:"Saved"};
+const eventLabels = {Pass:"Pass", "Ball Receipt*":"Receipt", Carry:"Carry", Shot:"Shot", "Goal Keeper":"Save", "Kick Off":"Kick-off", Interception:"Interception", Pressure:"Pressure", Tackle:"Tackle", "Full Time":"Full time"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
 let schedule=[],motionPlan=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
 let pitchAnimation=null, lastPitchEvent=null, pitchBall=null;
@@ -40,8 +40,8 @@ async function updateLiveInsight(event){
   $("insight-evidence").hidden=true;
   if(!event){
     $("insight").hidden=true;
-    $("insight-title").textContent="这一步，为什么值得关注？";
-    $("insight-text").textContent="播放比赛片段，洞察会随当前动作更新。";
+    $("insight-title").textContent="Why this moment matters";
+    $("insight-text").textContent="Insights update as the match unfolds.";
     return;
   }
   $("insight").hidden=false;
@@ -57,7 +57,7 @@ async function updateLiveInsight(event){
   async function fetchInsight(use_ai){
     const response=await fetch("/api/insights",{method:"POST",signal:controller.signal,
       headers:{"Content-Type":"application/json"},body:JSON.stringify({...params,use_ai})});
-    const result=await response.json();if(!response.ok)throw Error("无法读取洞察");return result;
+    const result=await response.json();if(!response.ok)throw Error("Could not load match insight");return result;
   }
   try{
     let insight=insightCache.get(key);
@@ -74,10 +74,10 @@ async function updateLiveInsight(event){
     displayLiveInsight(insight);
   }catch(error){
     if(key===insightKey && error.name!=="AbortError"){
-      if(baselineShown){$("insight-source").textContent="规则解读 · AI 暂不可用";}
+      if(baselineShown){$("insight-source").textContent="Event analysis · AI unavailable";}
       else{
-        $("insight-title").textContent="洞察暂时不可用";
-        $("insight-text").textContent="可以继续观看，稍后切换观赛模式重试。";
+        $("insight-title").textContent="Insight temporarily unavailable";
+        $("insight-text").textContent="The match will continue. Try switching viewing modes later.";
       }
       insightKey=null;
     }
@@ -193,8 +193,8 @@ function applyAudience(){
     $(id).disabled=audience()!=="neutral";
   });
   $("audience-hint").textContent=audience()==="neutral"
-    ?"中立观众：手动选择射手或门将视角，使用客观解说。"
-    :"优先体验支持球队的球员视角；片段结束自动准备，视频就绪后尝试播放。";
+    ?"Neutral viewers can choose the striker or goalkeeper POV."
+    :"Your team's POV is selected automatically when a clip is ready.";
 }
 const seen = () => data.events.slice(0,cursor);
 const unlocked = clip => seen().some(e=>e.id===clip.trigger_event_id);
@@ -203,12 +203,12 @@ function clearResult(){
   epoch++;clearTimeout(fallbackTimer);fallbackTimer=null;
   busy=false;prepared=null;highlightResume=false;$("skip-highlight").hidden=true;$("result").hidden=true;
   const video=$("highlight-video");video.onended=null;video.onerror=null;video.onplay=null;video.pause();video.removeAttribute("src");video.load();video.hidden=true;$("pov-stage").hidden=true;
-  $("video-status").textContent="场景已选择，准备生成请求后可预览。";
+  $("video-status").textContent="Scene selected. Preparing the video request.";
 }
 function updatePlayback(){
   const finished=data && cursor>=data.events.length;
   $("play").disabled=!!finished || playbackMode==="highlight";
-  $("play").textContent=finished?"比赛结束":playbackMode==="playing"?"暂停":playbackMode==="highlight"?"第一视角播放中":"继续比赛";
+  $("play").textContent=finished?"Full time":playbackMode==="playing"?"Pause":playbackMode==="highlight"?"POV playing":"Resume match";
 }
 function stop(){clearTimeout(timer);timer=null;updatePlayback();}
 function scheduleNext(){
@@ -230,7 +230,7 @@ function tick(){
     if(entry?.status==="succeeded" && entry.artifacts?.["video_job.json"]?.media_url){
       stop();playbackMode="highlight";prepareHighlight(true,true);return;
     }
-    $("video-status").textContent="精彩时刻已发生，第一视角视频继续在后台生成；比赛与文字解说照常进行。";
+    $("video-status").textContent="The moment has happened. Its POV video is still generating while the match continues.";
   }
   if(playbackMode==="playing")scheduleNext();
 }
@@ -288,7 +288,7 @@ function renderCommentary(){
   $("commentary-live-text").textContent=lastSpoken||({zh:"即将开球……",en:"Kick-off coming up…",es:"El partido está por comenzar…",fr:"Le coup d'envoi approche…"}[language]);
 }
 function renderLineups(){
-  const positionNames={GK:"门将",LB:"左后卫",CB:"中后卫",RB:"右后卫",DM:"后腰",CM:"中场",LW:"左边锋",ST:"前锋",RW:"右边锋"};
+  const positionNames={GK:"Goalkeeper",LB:"Left back",CB:"Centre back",RB:"Right back",DM:"Defensive midfield",CM:"Central midfield",LW:"Left wing",ST:"Striker",RW:"Right wing"};
   const spots={1:[50,8],2:[14,20],3:[38,20],4:[62,20],5:[86,20],
     6:[50,31],7:[30,36],8:[70,36],9:[18,44],10:[50,44],11:[82,44]};
   const field=$("lineup-players");field.replaceChildren();
@@ -314,25 +314,25 @@ function renderLineups(){
 function renderDataBoard(events){
   const [home,away]=summarizeMatch(data.match,events);
   const last=events.at(-1);
-  $("data-clock").textContent=`已播放 ${last?.minute||0}′ · 数据随直播更新`;
+  $("data-clock").textContent=`Played ${last?.minute||0}′ · Live statistics`;
   const metrics=[
-    ["进球","goals",value=>String(value)],
-    ["控球率 · 估算","possession",value=>`${Math.round(value*100)}%`],
-    ["射门","shots",value=>String(value)],
-    ["射正","shotsOnTarget",value=>String(value)],
-    ["禁区内射门","shotsInsideBox",value=>String(value)],
-    ["禁区外射门","shotsOutsideBox",value=>String(value)],
-    ["越位","offsides",value=>String(value)],
-    ["犯规","fouls",value=>String(value)],
-    ["黄牌","yellowCards",value=>String(value)],
-    ["红牌","redCards",value=>String(value)],
-    ["关键传球","keyPasses",value=>String(value)],
-    ["长传","longPasses",value=>String(value)],
-    ["成功传球","completedPasses",value=>String(value)],
-    ["传球成功率","passAccuracy",value=>`${Math.round(value*100)}%`],
-    ["平均传球球速 · 合成","averagePassSpeed",value=>`${Math.round(value)} km/h`],
-    ["平均射门球速 · 合成","averageShotSpeed",value=>`${Math.round(value)} km/h`],
-    ["xG · 合成估算","xg",value=>value.toFixed(2)],
+    ["Goals","goals",value=>String(value)],
+    ["Possession","possession",value=>`${Math.round(value*100)}%`],
+    ["Shots","shots",value=>String(value)],
+    ["Shots on target","shotsOnTarget",value=>String(value)],
+    ["Shots inside box","shotsInsideBox",value=>String(value)],
+    ["Shots outside box","shotsOutsideBox",value=>String(value)],
+    ["Offsides","offsides",value=>String(value)],
+    ["Fouls","fouls",value=>String(value)],
+    ["Yellow cards","yellowCards",value=>String(value)],
+    ["Red cards","redCards",value=>String(value)],
+    ["Key passes","keyPasses",value=>String(value)],
+    ["Long passes","longPasses",value=>String(value)],
+    ["Completed passes","completedPasses",value=>String(value)],
+    ["Pass accuracy","passAccuracy",value=>`${Math.round(value*100)}%`],
+    ["Avg. pass speed","averagePassSpeed",value=>`${Math.round(value)} km/h`],
+    ["Avg. shot speed","averageShotSpeed",value=>`${Math.round(value)} km/h`],
+    ["xG estimate","xg",value=>value.toFixed(2)],
   ];
   $("metric-rows").replaceChildren(...metrics.map(([label,key,format])=>{
     const row=document.createElement("div");row.className="metric-row";
@@ -358,10 +358,10 @@ function render(){
   const last=events.at(-1);
   const homeId=data.match.home_team.id;
   $("score").textContent=`${goals.filter(e=>e.team.id===homeId).length} : ${goals.filter(e=>e.team.id!==homeId).length}`;
-  $("clock").textContent=last?`${last.minute}′ ${String(last.second).padStart(2,"0")}″ · 90 分钟合成比赛`:"准备开场";
+  $("clock").textContent=last?`${last.minute}′ ${String(last.second).padStart(2,"0")}″ · Synthetic match`:"Kick-off soon";
   $("progress").textContent=`${cursor} / ${data.events.length}`;
   const onTarget=shots.filter(e=>["Goal","Saved"].includes(e.shot.outcome.name)).length;
-  $("stats").replaceChildren(...[[shots.length,"射门"],[onTarget,"射正"],[events.filter(e=>e.type.name==="Pass").length,"传球"]].map(([value,label])=>{
+  $("stats").replaceChildren(...[[shots.length,"Shots"],[onTarget,"On target"],[events.filter(e=>e.type.name==="Pass").length,"Passes"]].map(([value,label])=>{
     const item=document.createElement("div");item.className="stat";
     const number=document.createElement("b");number.textContent=value;
     const text=document.createElement("span");text.textContent=label;item.append(number,text);return item;
@@ -372,13 +372,13 @@ function render(){
     button.className="moment"+(selected?.id===clip.id?" active":"");
     button.disabled=!unlocked(clip);
     const title=document.createElement("span");title.textContent=`${shot.minute}′ · ${labels[shot.shot.outcome.name]}`;
-    const sub=document.createElement("small");sub.textContent=unlocked(clip)?`${shot.player.name} → 进入视角`:"等待比赛推进";
+    const sub=document.createElement("small");sub.textContent=unlocked(clip)?`${shot.player.name} → View POV`:"Waiting for the moment";
     button.append(title,sub);button.onclick=()=>{stop();playbackMode="paused";selected=clip;clearResult();render();prepareHighlight(true,false);};return button;
   }));
-  $("recap").textContent=available.length?available.map(c=>{const e=shotFor(c);return `${e.minute} 分钟，${e.player.name}${({Goal:"射门得分","Off T":"射门偏出",Saved:"射门被扑出"})[e.shot.outcome.name]}。`;}).join(" ")+(cursor===data.events.length?" 比赛结束。":""):"关键事件发生后，这里会自动整理回顾。";
+  $("recap").textContent=available.length?available.map(c=>{const e=shotFor(c);return `${e.minute}′: ${e.player.name} — ${labels[e.shot.outcome.name]}.`;}).join(" ")+(cursor===data.events.length?" Full time.":""):"The recap appears as key moments unfold.";
   $("event-log").replaceChildren(...events.slice(-6).reverse().map(e=>{const p=document.createElement("div");p.textContent=`${e.minute}:${String(e.second).padStart(2,"0")} · ${e.player.name} · ${eventLabels[e.type.name]}`;return p;}));
   $("prepare").disabled=busy || highlightResume || !selected || !unlocked(selected);
-  $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"射手":"门将"}视角`:"等待关键事件";
+  $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"Striker":"Goalkeeper"} POV`:"Waiting for a key moment";
   renderDataBoard(events);
   renderCommentary();
   updateLiveInsight([...events].reverse().find(event=>["Shot","Interception","Tackle","Pressure"].includes(event.type.name))||null);
@@ -450,7 +450,7 @@ function renderPitch(event){
   const shouldAnimate=!!event&&lastPitchEvent!==event.id;
   group.replaceChildren();
   $("next").disabled=cursor>=data.events.length || playbackMode==="highlight";
-  if(!event){lastPitchEvent=null;pitchBall=null;pitchPositions.clear();$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
+  if(!event){lastPitchEvent=null;pitchBall=null;pitchPositions.clear();$("action-caption").textContent="Follow each pass, carry, and shot as the match unfolds.";return;}
   lastPitchEvent=event.id;
   const svg=(tag,attrs,text)=>{
     const node=document.createElementNS("http://www.w3.org/2000/svg",tag);
@@ -483,7 +483,7 @@ function renderPitch(event){
   for(const id of combination.players)active.add(id);
   if(combination.passes.length>=2){
     svg("text",{x:4,y:7,fill:"#ffe99a","font-size":"2.5","font-weight":"700"},
-      `${combination.passes.length} 脚连续传球 · ${combination.players.size} 人参与`);
+      `${combination.passes.length} consecutive passes · ${combination.players.size} players involved`);
   }
   const end=event.pass?.end_location || event.carry?.end_location || event.shot?.end_location || event.kick_off?.end_location;
   if(event.type.name==="Shot"&&end){
@@ -549,18 +549,18 @@ function renderPitch(event){
     }
     animate(began);
   }
-  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}：${event.pass.outcome.name==="Complete"?"传球到位":"传球被拦截"}。`
-    :event.type.name==="Carry"?`${event.player.name} 带球推进，足球标记在本次推进终点。`
-    :event.type.name==="Shot"?`${event.player.name} 起脚射门 → ${labels[event.shot.outcome.name]}。射手与门将高亮，足球沿射门路线移动。`
-    :event.type.name==="Goal Keeper"?`${event.player.name} 完成扑救。门将和足球位于扑救位置，其余球员保留模拟站位。`
+  const action=event.type.name==="Pass"?`${event.player.name} → ${event.pass.recipient.name}: ${event.pass.outcome.name==="Complete"?"pass complete":"pass intercepted"}.`
+    :event.type.name==="Carry"?`${event.player.name} carries the ball forward.`
+    :event.type.name==="Shot"?`${event.player.name} shoots → ${labels[event.shot.outcome.name].toLowerCase()}.`
+    :event.type.name==="Goal Keeper"?`${event.player.name} makes the save.`
     :event.type.name==="Kick Off"?event.kick_off?.opening
-      ?`${event.player.name} 从中圈开球，比赛开始。`
-      :`失球方回到中圈，由 ${event.player.name} 开球，比赛继续。`
-    :event.type.name==="Full Time"?"90 分钟比赛结束。"
-    :event.type.name==="Interception"?`${event.player.name} 拦截了对方传球。`
-    :event.type.name==="Pressure"?`${event.player.name} 对持球者施压。`
-    :event.type.name==="Tackle"?`${event.player.name} 完成抢断，球权转换。`
-    :`${event.player.name} 接到传球，准备向球门推进。`;
+      ?`${event.player.name} kicks off from the centre circle.`
+      :`${event.player.name} restarts from the centre circle after the goal.`
+    :event.type.name==="Full Time"?"The 90-minute match is over."
+    :event.type.name==="Interception"?`${event.player.name} intercepts the pass.`
+    :event.type.name==="Pressure"?`${event.player.name} presses the ball carrier.`
+    :event.type.name==="Tackle"?`${event.player.name} wins the tackle.`
+    :`${event.player.name} receives the ball.`;
   $("action-caption").textContent=`${event.minute}′ ${eventLabels[event.type.name]} · ${action}`;
 }
 function highlightProfile(clip){
@@ -581,7 +581,7 @@ function warmHighlight(clip,retry=false){
       method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)
     });
     const body=await response.json();
-    if(!response.ok)throw Error(body.error||"视频任务提交失败");
+    if(!response.ok)throw Error(body.error||"Video job submission failed");
     entry.artifacts=body.artifacts;entry.job_id=body.job_id;
     entry.status=body.artifacts["video_job.json"].status;
     refreshReadyHighlight();
@@ -594,17 +594,17 @@ function warmHighlight(clip,retry=false){
         await new Promise(resolve=>setTimeout(resolve,5000));
         const response=await fetch(`/api/highlights/${encodeURIComponent(entry.job_id)}`);
         const body=await response.json();
-        if(!response.ok)throw Error(body.error||"视频状态查询失败");
+        if(!response.ok)throw Error(body.error||"Could not check video status");
         entry.artifacts["video_job.json"]=body.video_job;
         entry.status=body.video_job.status;
       }
-      if(["queued","running"].includes(entry.status))throw Error("视频生成等待超时");
-      if(entry.status==="failed")entry.error=entry.artifacts["video_job.json"].error||"视频生成失败";
-    }catch(error){entry.status="failed";entry.error=error.message||"视频生成失败";}
+      if(["queued","running"].includes(entry.status))throw Error("Video generation timed out");
+      if(entry.status==="failed")entry.error=entry.artifacts["video_job.json"].error||"Video generation failed";
+    }catch(error){entry.status="failed";entry.error=error.message||"Video generation failed";}
     finally{if(entry.ownsSlot){entry.ownsSlot=false;releaseVideoSlot();}}
     if(entry.status==="failed"){
       const status=$("video-generation-status");
-      status.textContent=`第一视角视频未生成：${entry.error}。比赛与文字解说继续播放。`;
+      status.textContent=`POV video unavailable: ${entry.error}. The match and commentary continue.`;
       status.hidden=false;
     }
     refreshReadyHighlight();
@@ -622,9 +622,9 @@ function refreshReadyHighlight(){
   button.hidden=!ready;
   if(ready){
     const shot=shotFor(ready);
-    button.textContent=`观看已完成的第一视角：${shot.minute}′ ${labels[shot.shot.outcome.name]}`;
+    button.textContent=`Watch completed POV: ${shot.minute}′ ${labels[shot.shot.outcome.name]}`;
     if(selected?.id===ready.id && playbackMode==="playing")
-      $("video-status").textContent="第一视角视频已完成；比赛仍在继续，可随时点击观看。";
+      $("video-status").textContent="POV video ready. You can watch it at any time.";
     button.onclick=()=>{
       stop();selected=ready;clearResult();playbackMode="highlight";prepareHighlight(true,true);
     };
@@ -668,17 +668,17 @@ function resumeAfterDelay(version){
 }
 async function showVideo(job,version,automatic){
   const video=$("highlight-video");video.src=job.media_url;video.hidden=false;$("pov-stage").hidden=false;
-  $("video-status").textContent="第一视角视频已就绪。";
+  $("video-status").textContent="POV video ready.";
   if(highlightResume){
     const watched=selected?.id;
     video.onended=()=>{if(watched)viewedClips.add(watched);refreshReadyHighlight();resumeMatch(version);};
-    video.onerror=()=>{$("video-status").textContent="视频播放失败，正在继续比赛。";resumeAfterDelay(version);};
+    video.onerror=()=>{$("video-status").textContent="Video playback failed. Resuming the match.";resumeAfterDelay(version);};
     video.onplay=()=>{clearTimeout(fallbackTimer);fallbackTimer=null;};
   }
   if(automatic){
     try{await video.play();}
     catch{if(version===epoch){
-      $("video-status").textContent="视频已就绪，请点击播放；若未播放，15 秒后继续比赛。";
+      $("video-status").textContent="Video ready. Press play, or the match will resume in 15 seconds.";
       if(highlightResume)fallbackTimer=setTimeout(()=>resumeMatch(version),15000);
     }}
   }
@@ -688,7 +688,7 @@ async function prepareHighlight(automatic=false,resume=false,retry=false){
   if(!selected||busy)return;stop();if(!resume)playbackMode="paused";busy=true;highlightResume=resume;
   $("skip-highlight").hidden=!resume;const version=++epoch;
   applyAudience();
-  $("error").hidden=true;$("video-status").textContent="正在读取后台视频任务…";render();
+  $("error").hidden=true;$("video-status").textContent="Checking the video job…";render();
   try{
     const entry=warmHighlight(selected,retry);
     await entry.submitted;
@@ -697,18 +697,18 @@ async function prepareHighlight(automatic=false,resume=false,retry=false){
     $("commentary").textContent=prepared["commentary.json"].text;
     $("scene").textContent=JSON.stringify(prepared["scene.json"],null,2);$("result").hidden=false;
     if(["queued","running","submitting"].includes(entry.status))
-      $("video-status").textContent="后台正在生成第一视角视频，比赛已暂停等待…";
+      $("video-status").textContent="Generating POV video in the background…";
     await entry.ready;
     if(version!==epoch)return;
     const job=entry.artifacts["video_job.json"];
     if(entry.status==="succeeded" && job.media_url)await showVideo(job,version,automatic);
     else if(entry.status==="not_submitted"){
-      $("video-status").textContent="未配置 OPENROUTER_API_KEY；即将继续比赛。";resumeAfterDelay(version);
+      $("video-status").textContent="OPENROUTER_API_KEY is not configured. Resuming the match.";resumeAfterDelay(version);
     }else{
-      $("video-status").textContent=`视频生成失败：${entry.error||"未知错误"}。即将继续比赛。`;
+      $("video-status").textContent=`Video generation failed: ${entry.error||"Unknown error"}. Resuming the match.`;
       resumeAfterDelay(version);
     }
-  }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="准备失败，即将继续比赛。";resumeAfterDelay(version);}}
+  }catch(error){if(version===epoch && error.name!=="AbortError"){$("error").textContent=error.message;$("error").hidden=false;$("video-status").textContent="Preparation failed. Resuming the match.";resumeAfterDelay(version);}}
   finally{if(version===epoch){busy=false;render();}}
 }
 $("prepare").onclick=()=>prepareHighlight(false,false,true);
@@ -719,13 +719,13 @@ async function loadMatch(){
   $("video-generation-status").hidden=true;
   try{
     const response=await fetch("/api/match");
-    const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
+    const body=await response.json();if(!response.ok)throw Error(body.error||"Could not load match data");
     data=body;motionPlan=buildMotionPlan(body.events);schedule=motionPlan.map(item=>item.durationMs);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;aiCommentaryCache.clear();
-    $("speed").options[0].textContent=`自然节奏 · 约 ${replayMinutes(body.events)} 分钟`;
+    $("speed").options[0].textContent=`Natural pace · about ${replayMinutes(body.events)} min`;
     playbackMode="paused";renderLineups();render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
-      ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"
-      :"比赛已开球；当前未配置视频服务，关键时刻将展示场景提示词。";
+      ?"The match is underway. POV videos are generating in the background."
+      :"The match is underway. Video generation is not configured.";
   }catch(error){$("error").textContent=error.message;$("error").hidden=false;}
 }
 loadMatch();

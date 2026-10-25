@@ -58,7 +58,7 @@ class OpenRouterVideoProvider:
         except (requests.RequestException, ValueError) as error:
             status = getattr(getattr(error, "response", None), "status_code", None)
             if status == 402:
-                raise VideoServiceError("OpenRouter 视频请求被拒绝（HTTP 402）：请检查账户余额和 API Key 消费上限", status) from None
+                raise VideoServiceError("OpenRouter rejected the video request (HTTP 402): check account credits and the API key spending limit", status) from None
             raise VideoServiceError(f"OpenRouter video request failed{f' (HTTP {status})' if status else ''}", status) from None
 
     def submit(self, request):
@@ -93,7 +93,7 @@ class OpenRouterVideoProvider:
                 if error.status_code != 404:
                     raise
                 job["status"] = "failed"
-                job["error"] = "OpenRouter 视频任务已失效或不存在（HTTP 404），无法继续查询"
+                job["error"] = "OpenRouter video job expired or does not exist (HTTP 404)"
                 saved.write_text(json.dumps(job, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
                 return job
             status = data.get("status")

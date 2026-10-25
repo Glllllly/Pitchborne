@@ -209,7 +209,7 @@ if __name__ == "__main__":
     MATCH_SEED = args.seed
     match_data()
     server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
-    print("Inside the Moment: http://127.0.0.1:8000", flush=True)
+    print("Pitchborne: http://127.0.0.1:8000", flush=True)
     print(f"Synthetic match seed: {MATCH_SEED}", flush=True)
     print("Insights: OpenRouter enabled" if INSIGHT_WRITER else "Insights: rule baseline (OpenRouter not configured)", flush=True)
     print("Video: OpenRouter enabled" if VIDEO_PROVIDER else "Video: dry run (OpenRouter not configured)", flush=True)

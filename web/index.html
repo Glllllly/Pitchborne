@@ -1,64 +1,64 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inside the Moment · 球员视角</title>
+  <title>Pitchborne · Feel the match from the pitch</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header hidden><a class="brand" href="/">ITM<span>INSIDE THE MOMENT</span></a><span class="badge">90 分钟合成比赛 · 第一视角</span></header>
+  <header hidden><a class="brand" href="/">PB<span>PITCHBORNE</span></a><span class="badge">90-minute synthetic match · Player POV</span></header>
   <main>
-    <div class="intro"><div class="preferences"><label hidden>观赛模式<select id="mode"><option value="casual">轻松看球</option><option value="analyst">查看数据</option></select></label><label>球迷立场<select id="audience"><option value="neutral">中立观众</option><option value="home">主队球迷</option><option value="away">客队球迷</option></select></label></div></div>
+    <div class="intro"><div class="intro-brand"><strong>Pitchborne</strong><span>Feel the match from the pitch.</span></div><div class="preferences"><label hidden>Viewing mode<select id="mode"><option value="casual">Casual</option><option value="analyst">Match data</option></select></label><label>Fan perspective<select id="audience"><option value="neutral">Neutral</option><option value="home">Home fan</option><option value="away">Away fan</option></select></label></div></div>
     <p id="error" role="alert" hidden></p>
     <div class="layout">
       <section class="match-panel panel">
-        <div class="scoreboard"><div><small>主队</small><strong>Harbor Comets</strong></div><div class="score"><b id="score">0 : 0</b><span id="clock">准备开场</span></div><div class="away"><small>客队</small><strong>Mountain Lanterns</strong></div></div>
-        <div class="pitch-legend"><span><i class="home-dot"></i>绿：主队</span><span><i class="away-dot"></i>橙红：客队</span><span>⚽ 黑白：足球</span><span>亮圈：当前参与者 · 暗色：其他球员</span><span>主队向右、客队向左进攻</span></div>
+        <div class="scoreboard"><div><small>Home</small><strong>Harbor Comets</strong></div><div class="score"><b id="score">0 : 0</b><span id="clock">Kick-off soon</span></div><div class="away"><small>Away</small><strong>Mountain Lanterns</strong></div></div>
+        <div class="pitch-legend"><span><i class="home-dot"></i>Green: home</span><span><i class="away-dot"></i>Orange: away</span><span>⚽ Black and white: ball</span><span>Bright: active players · Dim: others</span><span>Home attacks right, away attacks left</span></div>
         <div class="pitch-wrap">
-          <svg id="pitch" viewBox="-4 -4 130 88" role="img" aria-label="双方各十一人的合成比赛移动示意，绿色为主队，橙红色为客队">
+          <svg id="pitch" viewBox="-4 -4 130 88" role="img" aria-label="Synthetic 11-a-side match animation, green for home and orange for away">
             <defs><marker id="route-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#f0ffc0"/></marker><pattern id="grass" width="20" height="80" patternUnits="userSpaceOnUse"><rect width="10" height="80" fill="#ffffff" opacity=".025"/></pattern></defs>
             <rect width="120" height="80" fill="#163d32"/><rect width="120" height="80" fill="url(#grass)"/>
             <g fill="none" stroke="#94b8a0" stroke-width=".35" opacity=".6"><rect x="0" y="0" width="120" height="80"/><path d="M60 0V80"/><circle cx="60" cy="40" r="9"/><path d="M0 18H20V62H0M120 18H100V62H120M0 30H8V50H0M120 30H112V50H120"/></g>
             <path d="M0 36H-3V44H0Z M120 36H123V44H120Z" fill="none" stroke="#e9efdf" stroke-width=".4"/>
             <g id="markers"></g>
           </svg>
-          <button id="watch-ready" hidden>观看已完成的第一视角</button>
-          <div id="pov-stage" hidden><video id="highlight-video" controls playsinline hidden></video><div class="pov-stage-bar"><span id="video-status" aria-live="polite">第一视角视频准备中</span><button id="skip-highlight" class="secondary" hidden>跳过视频，继续比赛</button></div></div>
-          <span class="pitch-label">11 对 11 · 合成移动轨迹 · 非真实比赛追踪</span>
+          <button id="watch-ready" hidden>Watch completed POV</button>
+          <div id="pov-stage" hidden><video id="highlight-video" controls playsinline hidden></video><div class="pov-stage-bar"><span id="video-status" aria-live="polite">Preparing POV video</span><button id="skip-highlight" class="secondary" hidden>Skip video and resume match</button></div></div>
+          <span class="pitch-label">11 vs 11 · Synthetic movement</span>
         </div>
-        <p id="action-caption" class="action-caption" aria-live="polite">比赛载入后自动开球。</p>
+        <p id="action-caption" class="action-caption" aria-live="polite">The match starts automatically after loading.</p>
         <p id="video-generation-status" class="video-generation-status" role="status" hidden></p>
-        <div class="controls" hidden><button id="play">暂停</button><button class="secondary" id="next">下一步</button><button class="secondary" id="reset">重播</button><label>速度<select id="speed"><option value="1">自然节奏</option><option value="2">2×</option><option value="4">4×</option></select></label><span id="progress">0 / 0</span></div>
-        <p class="scope" hidden>正常比赛按事件类型控制动画节奏，球员与足球共用动作时间轴，文字解说随事件推进；视频在后台生成。位置为模拟轨迹，并非真实追踪。</p>
+        <div class="controls" hidden><button id="play">Pause</button><button class="secondary" id="next">Next</button><button class="secondary" id="reset">Replay</button><label>Speed<select id="speed"><option value="1">Natural pace</option><option value="2">2×</option><option value="4">4×</option></select></label><span id="progress">0 / 0</span></div>
+        <p class="scope" hidden>The animation and commentary follow the event timeline while POV videos generate in the background.</p>
         <div id="stats" class="stats" hidden></div>
       </section>
-      <section class="live-panel panel"><div class="section-heading"><strong>直播解说</strong><div class="live-options"><label class="live-mode-label">解说语言<select id="live-language"><option value="zh">中文</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></label><label class="live-mode-label">观赛模式<select id="live-mode"><option value="casual">轻松看球</option><option value="analyst">数据分析</option></select></label></div></div><p id="commentary-live-text" aria-live="polite">即将开球……</p><div id="insight" class="insight" aria-label="场边洞察" hidden><div class="insight-heading"><strong id="insight-heading-label">场边洞察 · 为什么重要</strong><span id="insight-source">规则解读</span></div><h3 id="insight-title">这一步，为什么值得关注？</h3><p id="insight-text" aria-live="polite"></p><div class="insight-judgment"><span id="insight-verdict-label">局面判断</span><strong id="insight-verdict"></strong><p id="insight-why"></p></div><div id="insight-analyst" hidden><div id="insight-signals" class="insight-signals"></div><p id="insight-pattern"></p><p id="insight-watch"></p><p id="insight-scope"></p></div><details id="insight-evidence" hidden><summary>查看分析依据</summary><p id="insight-measurement"></p><ul id="insight-facts"></ul><ul id="insight-events"></ul></details></div><div id="commentary-history" class="commentary-feed" role="log" aria-live="polite" aria-relevant="additions"></div></section>
+      <section class="live-panel panel"><div class="section-heading"><strong>Live commentary</strong><div class="live-options"><label class="live-mode-label">Commentary language<select id="live-language"><option value="zh">Chinese</option><option value="en" selected>English</option><option value="es">Español</option><option value="fr">Français</option></select></label><label class="live-mode-label">Viewing mode<select id="live-mode"><option value="casual">Casual</option><option value="analyst">Analyst</option></select></label></div></div><p id="commentary-live-text" aria-live="polite">Kick-off coming up…</p><div id="insight" class="insight" aria-label="Match insight" hidden><div class="insight-heading"><strong id="insight-heading-label">Match insight · Why it matters</strong><span id="insight-source">Event analysis</span></div><h3 id="insight-title">Why this moment matters</h3><p id="insight-text" aria-live="polite"></p><div class="insight-judgment"><span id="insight-verdict-label">Read of play</span><strong id="insight-verdict"></strong><p id="insight-why"></p></div><div id="insight-analyst" hidden><div id="insight-signals" class="insight-signals"></div><p id="insight-pattern"></p><p id="insight-watch"></p><p id="insight-scope"></p></div><details id="insight-evidence" hidden><summary>View evidence</summary><p id="insight-measurement"></p><ul id="insight-facts"></ul><ul id="insight-events"></ul></details></div><div id="commentary-history" class="commentary-feed" role="log" aria-live="polite" aria-relevant="additions"></div></section>
       <section class="highlight panel" hidden>
-        <p class="eyebrow">PLAYER POV</p><h2>进入这一刻</h2>
-        <p id="moment-title">等待关键事件</p>
-        <p id="audience-hint" class="scope"></p><div class="pov-options"><button id="striker" class="selected">射手视角</button><button id="goalkeeper" class="secondary">门将视角</button></div>
-        <div class="video-placeholder"><span class="viewfinder">⌖</span><strong id="video-title">从看台，到场上。</strong></div>
-        <label>片段解说语言<select id="language"><option value="zh">中文</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></label>
-        <button class="primary" id="prepare" disabled>准备第一视角片段</button>
-        <p class="scope">从合成比赛事件生成第一视角视频；视频服务需配置 OpenRouter Key。</p>
-        <div id="result" hidden><p id="commentary"></p><details><summary>查看场景规划</summary><pre id="scene"></pre></details><button id="download" class="secondary">下载生成请求</button></div>
+        <p class="eyebrow">PLAYER POV</p><h2>Step into the moment</h2>
+        <p id="moment-title">Waiting for a key moment</p>
+        <p id="audience-hint" class="scope"></p><div class="pov-options"><button id="striker" class="selected">Striker POV</button><button id="goalkeeper" class="secondary">Goalkeeper POV</button></div>
+        <div class="video-placeholder"><span class="viewfinder">⌖</span><strong id="video-title">From the stands to the pitch.</strong></div>
+        <label>Clip commentary language<select id="language"><option value="zh">Chinese</option><option value="en" selected>English</option><option value="es">Español</option><option value="fr">Français</option></select></label>
+        <button class="primary" id="prepare" disabled>Prepare POV clip</button>
+        <p class="scope">POV video is generated from synthetic match events.</p>
+        <div id="result" hidden><p id="commentary"></p><details><summary>View scene plan</summary><pre id="scene"></pre></details><button id="download" class="secondary">Download generation request</button></div>
       </section>
-      <section class="panel timeline" hidden><div class="section-heading"><h2>比赛瞬间</h2><span>点击已解锁片段切换体验</span></div><div id="moments"></div></section>
-      <section class="panel recap" hidden><p class="eyebrow">YOUR MATCH NOTES</p><h2>片段回顾</h2><p id="recap">关键事件发生后，这里会自动整理回顾。</p><div id="event-log"></div></section>
+      <section class="panel timeline" hidden><div class="section-heading"><h2>Match moments</h2><span>Select an unlocked clip</span></div><div id="moments"></div></section>
+      <section class="panel recap" hidden><p class="eyebrow">YOUR MATCH NOTES</p><h2>Match recap</h2><p id="recap">The recap appears as key moments unfold.</p><div id="event-log"></div></section>
     </div>
   </main>
-  <section class="data-board panel" aria-label="比赛数据">
-    <div class="data-board-heading"><div><p class="eyebrow">MATCH DATA</p><h2>比赛数据</h2></div><span id="data-clock">已播放 0′ · 数据随直播更新</span></div>
+  <section class="data-board panel" aria-label="Match data">
+    <div class="data-board-heading"><div><p class="eyebrow">MATCH DATA</p><h2>Match data</h2></div><span id="data-clock">Played 0′ · Live statistics</span></div>
     <div class="data-board-grid">
-      <div class="metric-panel"><div class="metric-teams"><strong id="data-home-name">主队</strong><strong id="data-away-name">客队</strong></div><div id="metric-rows"></div><p class="data-note">控球率按相邻事件的球权归属估算；长传为 30 米及以上，禁区内射门按射门坐标划分。xG 与球速为合成估算，未经真实比赛数据校准；未模拟的事件显示 0。所有指标仅累计已播放事件。</p></div>
-      <div class="lineup-panel"><div class="section-heading"><h3>首发阵容</h3><span>双方 4-3-3 · 合成球员</span></div><div class="lineup-pitch" aria-label="双方首发阵容站位图">
+      <div class="metric-panel"><div class="metric-teams"><strong id="data-home-name">Home</strong><strong id="data-away-name">Away</strong></div><div id="metric-rows"></div><p class="data-note">Possession, xG, and speed are synthetic estimates. Long passes are 30 m or more. Unmodelled events display zero.</p></div>
+      <div class="lineup-panel"><div class="section-heading"><h3>Starting lineups</h3><span>Both teams 4-3-3 · Fictional players</span></div><div class="lineup-pitch" aria-label="Starting lineup formation diagram">
         <svg class="lineup-lines" viewBox="0 0 100 160" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="3" width="94" height="154"/><path d="M3 80H97 M30 3V17H70V3 M40 3V9H60V3 M30 157V143H70V157 M40 157V151H60V157"/><circle cx="50" cy="80" r="10"/><circle cx="50" cy="14" r="1"/><circle cx="50" cy="146" r="1"/></svg>
-        <div class="lineup-team-tag away-tag" id="lineup-away-name">客队</div><div class="lineup-team-tag home-tag" id="lineup-home-name">主队</div>
+        <div class="lineup-team-tag away-tag" id="lineup-away-name">Away</div><div class="lineup-team-tag home-tag" id="lineup-home-name">Home</div>
         <div id="lineup-players"></div>
-      </div><p class="lineup-note">号码与位置为合成首发阵容；未模拟换人和球员评分。</p></div>
+      </div><p class="lineup-note">Synthetic starting lineups; substitutions and ratings are not modelled.</p></div>
     </div>
   </section>
-  <footer hidden>虚构球队与球员 · 合成比赛数据 · AI 场景演绎</footer>
+  <footer hidden>Fictional teams and players · Synthetic match data · AI scene generation</footer>
   <script src="/app.js" type="module"></script>
 </body>
 </html>
