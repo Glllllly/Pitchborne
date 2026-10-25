@@ -31,7 +31,7 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 10
+    match["generator_version"] = 11
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"

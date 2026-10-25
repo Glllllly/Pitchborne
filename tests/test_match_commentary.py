@@ -52,6 +52,29 @@ class CommentaryTests(unittest.TestCase):
                 if event["type"]["name"] == "Goal Keeper":
                     self.assertTrue(all(not tracks[side][index]["text"] for side in tracks))
 
+    def test_kickoff_lineups_and_interval_summaries(self):
+        match, events, _ = generate(7)
+        for builder in (build_tracks, build_english_tracks):
+            tracks = builder(match, events)
+            for audience, lines in tracks.items():
+                self.assertEqual(len(lines[0]["intro"]), 3)
+                for team in (match["home_team"], match["away_team"]):
+                    self.assertTrue(any(team["name"] in intro for intro in lines[0]["intro"]))
+                summaries = [(index, line["summary"]) for index, line in enumerate(lines) if line.get("summary")]
+                self.assertEqual(len(summaries), 9)
+                for index, summary in summaries:
+                    self.assertTrue(summary["text"])
+                    self.assertLessEqual(summary["period_end_second"],
+                                         events[index]["minute"] * 60 + events[index]["second"])
+                    if index < len(events) - 1:
+                        start = summary["period_start_second"]
+                        end = summary["period_end_second"]
+                        expected = sum(item["type"]["name"] == "Shot" and
+                                       item["team"]["id"] == match["home_team"]["id"] and
+                                       start < item["minute"] * 60 + item["second"] <= end
+                                       for item in events[:index + 1])
+                        self.assertEqual(summary["facts"]["home"]["shots"], expected)
+
 
 if __name__ == "__main__":
     unittest.main()

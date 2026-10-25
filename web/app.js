@@ -214,28 +214,38 @@ function renderCommentary(){
     feed.replaceChildren();commentaryCursor=Math.max(0,cursor-28);commentaryAudience=trackKey;
   }
   for(let index=commentaryCursor;index<cursor;index++){
-    const line=lines[index];if(!line?.text)continue;
-    const row=document.createElement("div");row.className="commentary-card";
-    row.dataset.eventId=line.event_id;
-    if(data.events[index]?.type.name==="Shot")row.classList.add("key-moment");
-    const time=document.createElement("time");time.textContent=`${Math.floor(line.match_second/60)}′`;
-    const aiText=$("live-language").value==="zh"?aiCommentaryCache.get(aiLineKey(line.event_id,audience(),$("mode").value)):null;
-    const text=document.createElement("p");text.textContent=aiText||line.text;
-    if(aiText)row.classList.add("ai-commentary");
-    row.append(time,text);feed.append(row);
-    if($("mode").value==="analyst"){
-      const metric=data.events[index]?.kinematics;
-      if(metric){const tag=document.createElement("small");tag.className="event-metric";
-        tag.textContent=data.events[index].type.name==="Pass"
-          ?`传球 ${metric.ball_distance_m} m · ${metric.ball_speed_kmh} km/h · 难度 ${metric.pass_difficulty}/100`
-          :`射门球速 ${metric.ball_speed_kmh} km/h · 飞行 ${metric.ball_flight_seconds} s`;
-        row.append(tag);}
+    const line=lines[index];if(!line)continue;
+    const addCard=(content,kind="",eventId="")=>{
+      const row=document.createElement("div");row.className=`commentary-card ${kind}`.trim();
+      if(eventId)row.dataset.eventId=eventId;
+      const time=document.createElement("time");
+      const section=kind==="match-intro"?($("live-language").value==="en"?" · Team news":" · 赛前介绍")
+        :kind==="match-summary"?($("live-language").value==="en"?" · Match check-in":" · 阶段回顾"):"";
+      time.textContent=`${Math.floor(line.match_second/60)}′${section}`;
+      const text=document.createElement("p");text.textContent=content;
+      row.append(time,text);feed.append(row);return row;
+    };
+    for(const intro of line.intro||[])addCard(intro,"match-intro");
+    if(line.text){
+      const aiText=$("live-language").value==="zh"?aiCommentaryCache.get(aiLineKey(line.event_id,audience(),$("mode").value)):null;
+      const row=addCard(aiText||line.text,data.events[index]?.type.name==="Shot"?"key-moment":"",line.event_id);
+      if(aiText)row.classList.add("ai-commentary");
+      if($("mode").value==="analyst"){
+        const metric=data.events[index]?.kinematics;
+        if(metric){const tag=document.createElement("small");tag.className="event-metric";
+          tag.textContent=data.events[index].type.name==="Pass"
+            ?`传球 ${metric.ball_distance_m} m · ${metric.ball_speed_kmh} km/h · 难度 ${metric.pass_difficulty}/100`
+            :`射门球速 ${metric.ball_speed_kmh} km/h · 飞行 ${metric.ball_flight_seconds} s`;
+          row.append(tag);}
+      }
     }
+    if(line.summary?.text)addCard(line.summary.text,"match-summary");
   }
   commentaryCursor=cursor;
   while(feed.children.length>50)feed.firstChild.remove();
   feed.scrollTop=feed.scrollHeight;
-  $("commentary-live-text").textContent=lines.slice(0,cursor).reverse().find(line=>line.text)?.text||($('live-language').value==='en'?"Kick-off coming up…":"即将开球……");
+  const lastSpoken=lines.slice(0,cursor).reverse().map(line=>line.summary?.text||line.text||line.intro?.at(-1)).find(Boolean);
+  $("commentary-live-text").textContent=lastSpoken||($('live-language').value==='en'?"Kick-off coming up…":"即将开球……");
 }
 function renderLineups(){
   const positionNames={GK:"门将",LB:"左后卫",CB:"中后卫",RB:"右后卫",DM:"后腰",CM:"中场",LW:"左边锋",ST:"前锋",RW:"右边锋"};

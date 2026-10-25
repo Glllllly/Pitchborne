@@ -67,7 +67,8 @@ def build_tracks(match, events):
             lines.append({"event_id": event["id"], "text": text,
                           "match_second": event["minute"] * 60 + event["second"]})
     from workflow.commentary_enrichment import enrich_tracks
-    return enrich_tracks(match, events, tracks, "zh")
+    from workflow.broadcast_beats import add_broadcast_beats
+    return add_broadcast_beats(match, events, enrich_tracks(match, events, tracks, "zh"), "zh")
 
 
 def build_english_tracks(match, events):
@@ -125,4 +126,5 @@ def build_english_tracks(match, events):
             lines.append({"event_id": event["id"], "text": text,
                           "match_second": event["minute"] * 60 + event["second"]})
     from workflow.commentary_enrichment import enrich_tracks
-    return enrich_tracks(match, events, tracks, "en")
+    from workflow.broadcast_beats import add_broadcast_beats
+    return add_broadcast_beats(match, events, enrich_tracks(match, events, tracks, "en"), "en")

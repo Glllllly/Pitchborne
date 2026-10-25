@@ -22,6 +22,8 @@ main{max-width:1600px;height:100vh;min-height:620px;padding:18px 24px;display:fl
 .commentary-card time{display:block;color:#bce77c;font-size:11px;font-weight:700;letter-spacing:.05em}
 .commentary-card p{margin:4px 0 0;color:#e8eee7;font-size:14px;line-height:1.5}
 .commentary-card.key-moment{border-color:#a9d86d;background:#27392a}
+.commentary-card.match-intro{border-color:#648d71;background:#1b3129}.commentary-card.match-intro time{color:#a9cfb9}
+.commentary-card.match-summary{border-color:#86b979;background:linear-gradient(135deg,#253b2b,#1a2f27)}.commentary-card.match-summary time{color:#d5ff9f}.commentary-card.match-summary p{font-weight:600}
 .commentary-card.ai-commentary::after{content:"AI 解说 · 当前事件";display:block;margin-top:5px;color:#bce77c;font-size:10px;letter-spacing:.04em}
 .event-metric{display:block;margin-top:6px;color:#acd992;font-size:11px}
 .live-mode-label{font-size:11px;gap:2px}.live-mode-label select{font-size:12px;padding:4px 8px}
