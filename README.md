@@ -8,10 +8,10 @@
 
 These short previews play directly in the README. Click one for the full-resolution MP4:
 
-| Score the goal | Make the save | Have your shot saved |
+| Score the goal | Face the goal | Have your shot saved |
 | :---: | :---: | :---: |
-| [![Striker POV: goal](docs/screenshots/goal-preview.gif)](asserts/goal.mp4) | [![Goalkeeper POV: save](docs/screenshots/save-preview.gif)](asserts/save.mp4) | [![Striker POV: saved shot](docs/screenshots/save2-preview.gif)](asserts/save2.mp4) |
-| [Full video: goal](asserts/goal.mp4) | [Full video: goalkeeper save](asserts/save.mp4) | [Full video: saved shot](asserts/save2.mp4) |
+| [![Striker POV: goal](docs/screenshots/goal-preview.gif)](asserts/goal.mp4) | [![Goalkeeper POV: goal conceded](docs/screenshots/goal2-preview.gif)](asserts/goal2.mp4) | [![Striker POV: saved shot](docs/screenshots/save2-preview.gif)](asserts/save2.mp4) |
+| [Full video: goal](asserts/goal.mp4) | [Full video: goalkeeper POV](asserts/goal2.mp4) | [Full video: saved shot](asserts/save2.mp4) |
 
 These are example generated clips. During a live run, Pitchborne requests new clips from the selected match events rather than playing these three files.
 
