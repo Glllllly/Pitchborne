@@ -24,15 +24,18 @@ function releaseVideoSlot(){
 let insightController=null, insightKey=null;
 const insightCache=new Map();
 async function updateLiveInsight(event){
-  const key=event?`${event.id}:${audience()}:${$("mode").value}`:null;
+  if(event && !["Shot","Interception","Tackle","Pressure"].includes(event.type.name))return;
+  const key=event?`${event.id}:${audience()}:${$("mode").value}:${$("live-language").value}`:null;
   if(key===insightKey)return;
-  insightController?.abort();insightKey=key;
+  insightKey=key;
   $("insight-evidence").hidden=true;
   if(!event){
+    $("insight").hidden=true;
     $("insight-title").textContent="这一步，为什么值得关注？";
     $("insight-text").textContent="播放比赛片段，洞察会随当前动作更新。";
     return;
   }
+  $("insight").hidden=false;
   $("insight-title").textContent=`${event.minute}′ · 正在解读当前动作`;
   $("insight-text").textContent="结合当前事件与球场位置，整理分析依据…";
   const controller=new AbortController();insightController=controller;
@@ -49,8 +52,8 @@ async function updateLiveInsight(event){
       insight=await fetchInsight(false);
       if(key!==insightKey)return;
       displayLiveInsight(insight);baselineShown=true;
-      const featured=data.clips.some(c=>c.trigger_event_id===event.id);
-      if(insight.ai_available && featured)insight=await fetchInsight(true);
+      const featured=event.type.name==="Shot";
+      if(insight.ai_available && featured && $("live-language").value==="zh")insight=await fetchInsight(true);
       insightCache.set(key,insight);
     }
     if(key!==insightKey)return;
@@ -67,11 +70,25 @@ async function updateLiveInsight(event){
   }
 }
 function displayLiveInsight(insight){
-    $("insight-title").textContent=insight.title;
-    $("insight-text").textContent=insight.text;
-    $("insight-source").textContent=insight.generator_label;
-    $("insight-measurement").textContent=insight.measurement_note;
-    const factNames={pass_distance_m:"传球距离（米）",forward_progress_m:"向前推进（米）",
+    const english=$("live-language").value==="en";
+    const fact=insight.facts;
+    let englishTitle="Why this matters", englishText="The next phase will show whether the move develops.";
+    if(fact.event_type==="Shot"){
+      englishTitle=fact.outcome==="Goal"?"A chance becomes a goal":fact.outcome==="Saved"?"The keeper preserves the score":"The chance goes begging";
+      englishText=`A shot from about ${Math.round(fact.goal_distance_m)} metres ${fact.outcome==="Goal"?"changes the score":fact.outcome==="Saved"?"is stopped by the keeper":"goes wide"}. ${fact.nearest_defender_m!=null?`The nearest defender was about ${fact.nearest_defender_m} metres away.`:""}`;
+    }else if(fact.event_type==="Pressure"){
+      englishTitle="Pressure on the ball";englishText="The defender closes down the carrier, forcing a quicker decision. Pressure alone does not prove a turnover.";
+    }else if(["Interception","Tackle"].includes(fact.event_type)){
+      englishTitle="Possession changes hands";englishText="This defensive action stops the attack. Watch whether the new ball carrier can move forward quickly.";
+    }
+    $("insight-title").textContent=english?englishTitle:insight.title;
+    $("insight-text").textContent=english?englishText:insight.text;
+    $("insight-source").textContent=english?"Rule explanation · synthetic events":insight.generator_label;
+    $("insight-measurement").textContent=english?"Distances and angles are estimates from synthetic event positions on a 105 × 68 m pitch.":insight.measurement_note;
+    const factNames=english?{pass_distance_m:"Pass distance (m)",forward_progress_m:"Forward progress (m)",
+      carry_distance_m:"Carry distance (m)",goal_distance_reduction_m:"Closer to goal (m)",
+      goal_distance_m:"Distance to goal (m)",nearest_defender_m:"Nearest defender (m)",
+      goal_opening_angle_degrees:"Goal opening angle (°)"}:{pass_distance_m:"传球距离（米）",forward_progress_m:"向前推进（米）",
       carry_distance_m:"带球距离（米）",goal_distance_reduction_m:"距球门缩短（米）",
       goal_distance_m:"距球门中心（米）",nearest_defender_m:"最近防守球员（米）",
       goal_opening_angle_degrees:"两门柱夹角（度）"};
@@ -79,9 +96,11 @@ function displayLiveInsight(insight){
       const li=document.createElement("li");li.textContent=`${label}：${insight.facts[key]}`;return li;
     }));
     $("insight-events").replaceChildren(...insight.evidence.map(item=>{
-      const li=document.createElement("li");li.textContent=item.label;return li;
+      const li=document.createElement("li");
+      const event=data.events.find(candidate=>candidate.id===item.event_id);
+      li.textContent=english&&event?`${event.minute}′ ${event.player.name} · ${event.type.name}`:item.label;return li;
     }));
-    $("insight-evidence").hidden=false;
+    $("insight-evidence").hidden=$("mode").value!=="analyst";
 }
 const audience=()=>$("audience").value;
 function applyAudience(){
@@ -142,10 +161,11 @@ function start(){
   updatePlayback();
 }
 function renderCommentary(){
-  const lines=data.commentary?.[audience()]||[];
+  const lines=($('live-language').value==='en'?data.commentary_en:data.commentary)?.[audience()]||[];
   const feed=$("commentary-history");
-  if(commentaryAudience!==audience() || cursor<commentaryCursor){
-    feed.replaceChildren();commentaryCursor=Math.max(0,cursor-28);commentaryAudience=audience();
+  const trackKey=`${audience()}:${$('live-language').value}`;
+  if(commentaryAudience!==trackKey || cursor<commentaryCursor){
+    feed.replaceChildren();commentaryCursor=Math.max(0,cursor-28);commentaryAudience=trackKey;
   }
   for(let index=commentaryCursor;index<cursor;index++){
     const line=lines[index];if(!line?.text)continue;
@@ -158,7 +178,7 @@ function renderCommentary(){
   commentaryCursor=cursor;
   while(feed.children.length>50)feed.firstChild.remove();
   feed.scrollTop=feed.scrollHeight;
-  $("commentary-live-text").textContent=lines.slice(0,cursor).reverse().find(line=>line.text)?.text||"即将开球……";
+  $("commentary-live-text").textContent=lines.slice(0,cursor).reverse().find(line=>line.text)?.text||($('live-language').value==='en'?"Kick-off coming up…":"即将开球……");
 }
 function renderLineups(){
   const positionNames={GK:"门将",LB:"左后卫",CB:"中后卫",RB:"右后卫",DM:"后腰",CM:"中场",LW:"左边锋",ST:"前锋",RW:"右边锋"};
@@ -194,6 +214,7 @@ function renderDataBoard(events){
     ["射正","shotsOnTarget",value=>String(value)],
     ["关键传球","keyPasses",value=>String(value)],
     ["成功传球","completedPasses",value=>String(value)],
+    ["传球成功率","passAccuracy",value=>`${Math.round(value*100)}%`],
     ["xG · 合成估算","xg",value=>value.toFixed(2)],
   ];
   $("metric-rows").replaceChildren(...metrics.map(([label,key,format])=>{
@@ -242,7 +263,7 @@ function render(){
   $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"射手":"门将"}视角`:"等待关键事件";
   renderDataBoard(events);
   renderCommentary();
-  updateLiveInsight(last);
+  updateLiveInsight([...events].reverse().find(event=>["Shot","Interception","Tackle","Pressure"].includes(event.type.name))||null);
   renderPitch(last);
 }
 function pitchState(event){
@@ -451,6 +472,8 @@ $("play").onclick=()=>{if(playbackMode==="playing"){stop();playbackMode="paused"
 $("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();clearResult();render();start();warmUpcoming();};
 $("speed").onchange=()=>{if(playbackMode==="playing"){stop();scheduleNext();}};
 $("mode").onchange=()=>render();
+$("live-mode").onchange=()=>{$("mode").value=$("live-mode").value;insightKey=null;render();};
+$("live-language").onchange=()=>{$("language").value=$("live-language").value;insightKey=null;render();};
 $("audience").onchange=()=>{
   const resume=highlightResume;clearResult();applyAudience();render();
   warmUpcoming();refreshReadyHighlight();if(resume)prepareHighlight(true,true);

@@ -1,7 +1,7 @@
 import unittest
 
 from scripts.generate_match import generate
-from workflow.match_commentary import build_tracks
+from workflow.match_commentary import build_tracks, build_english_tracks
 
 
 class CommentaryTests(unittest.TestCase):
@@ -27,6 +27,16 @@ class CommentaryTests(unittest.TestCase):
         self.assertIn("丢球", tracks[opponent][index]["text"])
         self.assertNotIn("我们", tracks["neutral"][index]["text"])
         self.assertIn("球进了", tracks["neutral"][index]["text"])
+
+    def test_english_tracks_share_timing_and_change_with_allegiance(self):
+        match, events, _ = generate(7)
+        tracks = build_english_tracks(match, events)
+        self.assertEqual(set(tracks), {"home", "away", "neutral"})
+        for lines in tracks.values():
+            self.assertEqual([line["event_id"] for line in lines], [event["id"] for event in events])
+        index = next(i for i, event in enumerate(events)
+                     if event.get("shot", {}).get("outcome", {}).get("name") == "Goal")
+        self.assertEqual(len({tracks[side][index]["text"] for side in tracks}), 3)
 
 
 if __name__ == "__main__":

@@ -61,7 +61,8 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
             detail = f"{facts['actor']} 的传球没有找到 {facts['recipient']}。"
             why = "这次推进在传球环节中断，球权转给对手。"
             home_voice, away_voice = "哎呀，这脚传丢了！", "断下来了！这次威胁停住了。"
-        home_voice, away_voice = "我们的推进接上了，看看接球后怎么处理。", "对手又向前推进了一步，我们需要留意接球者。"
+        else:
+            home_voice, away_voice = "我们的推进接上了，看看接球后怎么处理。", "对手又向前推进了一步，我们需要留意接球者。"
     elif kind == "Ball Receipt*":
         prior_pass = next((item for item in reversed(chain[:-1]) if item.get("pass")), None)
         title = "传球变成接球机会"
@@ -122,10 +123,24 @@ def build_insight(match, events, event_id, audience="neutral", mode="casual", wr
             title = "推进到位，射门未能得分"
             why = "推进创造了射门机会，但球偏出球门，比分没有改变。"
             home_voice, away_voice = "可惜偏了，这次进攻还差最后一下。", "松了一口气，对手这脚没有打进。"
+    elif kind in ("Interception", "Tackle", "Pressure"):
+        facts["possession_team"] = event["possession_team"]["name"]
+        if kind == "Pressure":
+            title = "持球者受到逼抢"
+            detail = f"{facts['actor']} 上前施压。"
+            why = "持球者需要更快处理球；这是一段防守压力的信号，但还不能据此判定球权会改变。"
+            home_voice, away_voice = "逼上去！争取让对手出错。", "对手逼得很紧，我们得尽快出球。"
+        else:
+            title = "防守转为进攻" if kind == "Interception" else "抢断改变球权"
+            detail = f"{facts['actor']} {'拦下传球' if kind == 'Interception' else '完成抢断'}。"
+            why = "这次防守动作让原有进攻中断，接下来可以观察新持球队能否快速推进。"
+            home_voice, away_voice = "断得漂亮！现在轮到我们往前打。", "球丢了！得赶紧回到防守位置。"
     else:
         title, detail, why = "比赛继续", f"{facts['actor']} 完成了当前动作。", "等待更多事件再判断这次进攻的发展。"
         home_voice = away_voice = ""
     tone = "" if audience == "neutral" else home_voice if favor_attack else away_voice
+    if audience != "neutral" and kind in ("Interception", "Tackle", "Pressure"):
+        tone = home_voice if supported == event["team"]["id"] else away_voice
     if audience != "neutral":
         if kind == "Pass" and facts["pass_complete"]:
             why = ("重点看接球后的处理：我们的球已经向前转移，接下来能否继续推进？" if favor_attack

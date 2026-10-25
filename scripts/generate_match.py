@@ -9,7 +9,7 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 from workflow.pipeline import ROOT
-from workflow.match_commentary import build_tracks
+from workflow.match_commentary import build_tracks, build_english_tracks
 
 SAMPLE = ROOT / "data" / "synthetic" / "match.json"
 FORMATION = {
@@ -30,7 +30,7 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 6
+    match["generator_version"] = 7
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"
@@ -216,6 +216,8 @@ def generate(seed):
     clips = []
     for chosen in candidates:
         result = chosen["result"]
+        if result not in ("Goal", "Saved"):
+            continue
         chain, shot = chosen["chain"], chosen["shot"]
         keeper = next(p["player"] for p in shot["shot"]["freeze_frame"] if p["position"]["name"] == "Goalkeeper")
         clips.append({
@@ -260,7 +262,8 @@ def save(seed, out=None):
     match, events, clips = generate(seed)
     out.mkdir(parents=True, exist_ok=True)
     for name, value in (("match.json", match), ("events.json", events), ("clips.json", clips),
-                        ("commentary.json", build_tracks(match, events))):
+                        ("commentary.json", build_tracks(match, events)),
+                        ("commentary_en.json", build_english_tracks(match, events))):
         (out / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return out, match, events, clips
 

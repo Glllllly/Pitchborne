@@ -28,6 +28,7 @@ export function summarizeMatch(match, events) {
       keyPasses: passes.filter(event => keyPassIds.has(event.id) && event.pass?.outcome.name === "Complete").length,
       passes: passes.length,
       completedPasses: passes.filter(event => event.pass?.outcome.name === "Complete").length,
+      passAccuracy: passes.length ? passes.filter(event => event.pass?.outcome.name === "Complete").length / passes.length : 0,
       xg: ownShots.reduce((sum, shot) => sum + estimatedShotXg(shot), 0),
     };
   });

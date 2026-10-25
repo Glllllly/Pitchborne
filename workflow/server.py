@@ -30,8 +30,8 @@ def match_data():
         raise ValueError("Invalid match seed")
     folder = ROOT / "data" / "matches" / f"seed-{seed}"
     with MATCH_LOCK:
-        if (not all((folder / name).exists() for name in ("match.json", "events.json", "clips.json", "commentary.json"))
-                or read(folder / "match.json").get("generator_version") != 6):
+        if (not all((folder / name).exists() for name in ("match.json", "events.json", "clips.json", "commentary.json", "commentary_en.json"))
+                or read(folder / "match.json").get("generator_version") != 7):
             save_match(seed, folder)
     return folder
 
@@ -39,7 +39,7 @@ def match_data():
 @lru_cache(maxsize=4)
 def cached_match_bundle(folder):
     match, events, clips = (read(folder / name) for name in ("match.json", "events.json", "clips.json"))
-    return match, events, clips, read(folder / "commentary.json")
+    return match, events, clips, read(folder / "commentary.json"), read(folder / "commentary_en.json")
 
 
 def match_bundle(folder):
@@ -127,9 +127,9 @@ class Handler(BaseHTTPRequestHandler):
                 source = match_data()
             except ValueError:
                 return self.respond(400, {"error": "Invalid match seed"})
-            match, events, clips, commentary = match_bundle(source)
+            match, events, clips, commentary, commentary_en = match_bundle(source)
             return self.respond(200, {"match": match, "events": events, "clips": clips,
-                                      "commentary": commentary,
+                                      "commentary": commentary, "commentary_en": commentary_en,
                                       "video_available": VIDEO_PROVIDER is not None})
         assets = {
             "/": ("index.html", "text/html; charset=utf-8"),
@@ -158,7 +158,7 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(request, dict):
                 raise ValueError("Expected JSON object")
             source = match_data()
-            match, events, clips, _ = match_bundle(source)
+            match, events, clips, _, _ = match_bundle(source)
             if self.path == "/api/insights":
                 use_ai = request.get("use_ai", True)
                 if not isinstance(use_ai, bool):

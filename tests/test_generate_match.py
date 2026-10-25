@@ -17,10 +17,13 @@ class FullMatchTests(unittest.TestCase):
         self.assertEqual(events[-1]["minute"], 90)
         self.assertEqual(len(match["players"]), 22)
         self.assertEqual({c["generation_constraints"]["outcome"] for c in clips},
-                         {"Goal", "Saved", "Off T"})
-        self.assertEqual(len(clips), sum(event["type"]["name"] == "Shot" for event in events))
+                         {"Goal", "Saved"})
+        self.assertEqual(len(clips), sum(event["type"]["name"] == "Shot" and
+                                         event["shot"]["outcome"]["name"] in ("Goal", "Saved")
+                                         for event in events))
         self.assertEqual({clip["trigger_event_id"] for clip in clips},
-                         {event["id"] for event in events if event["type"]["name"] == "Shot"})
+                         {event["id"] for event in events if event["type"]["name"] == "Shot" and
+                          event["shot"]["outcome"]["name"] in ("Goal", "Saved")})
         self.assertTrue(any(e["team"]["id"] == match["away_team"]["id"] for e in events if e["type"]["name"] == "Shot"))
 
     def test_generated_highlights_use_existing_pipeline(self):

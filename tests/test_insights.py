@@ -61,6 +61,16 @@ class InsightTests(unittest.TestCase):
         self.assertEqual(result["generator"], "ai")
         self.assertEqual(result["text"], "Model text")
 
+    def test_turnover_and_pressure_explain_without_predicting(self):
+        from scripts.generate_match import generate
+        match, events, _ = generate(7)
+        for kind in ("Interception", "Tackle", "Pressure"):
+            event = next(item for item in events if item["type"]["name"] == kind)
+            insight = build_insight(match, events, event["id"], audience="neutral")
+            self.assertNotEqual(insight["title"], "比赛继续")
+            self.assertIn("event_id", insight)
+            self.assertEqual(insight["event_id"], event["id"])
+
 
 if __name__ == "__main__":
     unittest.main()

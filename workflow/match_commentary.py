@@ -67,3 +67,60 @@ def build_tracks(match, events):
             lines.append({"event_id": event["id"], "text": text,
                           "match_second": event["minute"] * 60 + event["second"]})
     return tracks
+
+
+def build_english_tracks(match, events):
+    """Timed English calls from the same event stream, with allegiance-aware reactions."""
+    home, away = match["home_team"]["id"], match["away_team"]["id"]
+    score = {home: 0, away: 0}
+    tracks = {audience: [] for audience in ("neutral", "home", "away")}
+    for event in events:
+        kind, name = event["type"]["name"], event["player"]["name"]
+        actor = event["team"]["id"]
+        if kind == "Shot" and event["shot"]["outcome"]["name"] == "Goal":
+            score[actor] += 1
+        for audience, lines in tracks.items():
+            supported = None if audience == "neutral" else match[f"{audience}_team"]["id"]
+            ours = supported == actor
+            text = ""
+            if kind == "Pass":
+                recipient = event["pass"]["recipient"]["name"]
+                if event["pass"]["outcome"]["name"] != "Complete":
+                    text = (f"{name}'s pass is cut out!" if audience == "neutral" else
+                            "Oh, we've given it away!" if ours else "We've intercepted that pass!")
+                elif event["possession"] % 2 == 0 or event["location"][0] > 75:
+                    text = (f"{name} finds {recipient}; the move keeps going." if audience == "neutral" else
+                            f"{name} finds {recipient} — we're moving forward!" if ours else
+                            f"They find {recipient}; we need to stay close.")
+            elif kind == "Carry" and (event["possession"] % 3 == 0 or event["location"][0] > 80):
+                text = (f"{name} drives forward, looking for space." if audience == "neutral" else
+                        f"{name} carries it forward — can we make this count?" if ours else
+                        f"{name} is coming forward; don't give them space.")
+            elif kind in ("Interception", "Tackle"):
+                action = "reads the pass and intercepts" if kind == "Interception" else "wins the tackle"
+                text = (f"{name} {action}! Possession changes hands." if audience == "neutral" else
+                        f"Yes! {name} wins it back for us." if ours else "We've lost the ball — get back into shape!")
+            elif kind == "Pressure" and event["possession"] % 3 == 0:
+                text = (f"{name} closes down the ball carrier." if audience == "neutral" else
+                        f"{name} presses high — force a mistake!" if ours else "They're pressing us; move the ball quickly!")
+            elif kind == "Shot":
+                outcome = event["shot"]["outcome"]["name"]
+                if outcome == "Goal":
+                    text = (f"{name} shoots — it's in! {score[home]}–{score[away]}!" if audience == "neutral" else
+                            f"Goal! {name} scores for us! We're {score[supported]}–{score[away if supported == home else home]}!" if ours else
+                            f"Oh no, {name} scores against us.")
+                elif outcome == "Saved":
+                    text = (f"{name} shoots — saved by the keeper!" if audience == "neutral" else
+                            f"{name} shoots! Ah, the keeper stops it." if ours else "Saved! Our keeper keeps it out!")
+                else:
+                    text = (f"{name} shoots — wide!" if audience == "neutral" else
+                            f"{name} puts it wide — what a chance!" if ours else "Wide! We escape that one.")
+            elif kind == "Goal Keeper":
+                text = (f"{name} holds the shot; the score stays the same." if audience == "neutral" else
+                        f"Brilliant save by {name}!" if ours else "Their keeper denies our shot.")
+            elif kind == "Full Time":
+                text = (f"Full time! {score[home]}–{score[away]}." if audience == "neutral" else
+                        f"Full time! {'We win' if score[supported] > score[away if supported == home else home] else 'We lose' if score[supported] < score[away if supported == home else home] else 'It ends level'}, {score[home]}–{score[away]}.")
+            lines.append({"event_id": event["id"], "text": text,
+                          "match_second": event["minute"] * 60 + event["second"]})
+    return tracks
