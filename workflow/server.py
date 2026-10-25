@@ -135,6 +135,7 @@ class Handler(BaseHTTPRequestHandler):
             "/": ("index.html", "text/html; charset=utf-8"),
             "/app.js": ("app.js", "text/javascript; charset=utf-8"),
             "/pitch_motion.mjs": ("pitch_motion.mjs", "text/javascript; charset=utf-8"),
+            "/match_stats.mjs": ("match_stats.mjs", "text/javascript; charset=utf-8"),
             "/match_clock.mjs": ("match_clock.mjs", "text/javascript; charset=utf-8"),
             "/style.css": ("style.css", "text/css; charset=utf-8"),
         }

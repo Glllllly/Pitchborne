@@ -1,5 +1,6 @@
 import {buildSchedule} from "./match_clock.mjs";
 import {interpolatePose} from "./pitch_motion.mjs";
+import {summarizeMatch} from "./match_stats.mjs";
 const $ = id => document.getElementById(id);
 const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
 const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
@@ -159,6 +160,51 @@ function renderCommentary(){
   feed.scrollTop=feed.scrollHeight;
   $("commentary-live-text").textContent=lines.slice(0,cursor).reverse().find(line=>line.text)?.text||"即将开球……";
 }
+function renderLineups(){
+  const positionNames={GK:"门将",LB:"左后卫",CB:"中后卫",RB:"右后卫",DM:"后腰",CM:"中场",LW:"左边锋",ST:"前锋",RW:"右边锋"};
+  for(const side of ["home","away"]){
+    const team=data.match[`${side}_team`];
+    $(side==="home"?"lineup-home-name":"lineup-away-name").textContent=team.name;
+    $(side==="home"?"data-home-name":"data-away-name").textContent=team.name;
+    const players=data.match.players.filter(player=>player.team_id===team.id)
+      .sort((a,b)=>a.shirt_number-b.shirt_number);
+    $(side==="home"?"lineup-home":"lineup-away").replaceChildren(...players.map(player=>{
+      const row=document.createElement("li");
+      const number=document.createElement("span");number.className="lineup-number";number.textContent=player.shirt_number;
+      const name=document.createElement("span");name.className="lineup-name";name.textContent=player.player.name;
+      const position=document.createElement("span");position.className="lineup-position";position.textContent=positionNames[player.position]||player.position;
+      row.append(number,name,position);return row;
+    }));
+  }
+}
+function renderDataBoard(events){
+  const [home,away]=summarizeMatch(data.match,events);
+  const last=events.at(-1);
+  $("data-clock").textContent=`已播放 ${last?.minute||0}′ · 数据随直播更新`;
+  const metrics=[
+    ["进球","goals",value=>String(value)],
+    ["射门","shots",value=>String(value)],
+    ["射正","shotsOnTarget",value=>String(value)],
+    ["关键传球","keyPasses",value=>String(value)],
+    ["成功传球","completedPasses",value=>String(value)],
+    ["xG · 合成估算","xg",value=>value.toFixed(2)],
+  ];
+  $("metric-rows").replaceChildren(...metrics.map(([label,key,format])=>{
+    const row=document.createElement("div");row.className="metric-row";
+    const left=document.createElement("strong");left.className="metric-value";left.textContent=format(home[key]);
+    const middle=document.createElement("div");middle.className="metric-middle";
+    const title=document.createElement("span");title.className="metric-label";title.textContent=label;
+    const bars=document.createElement("div");bars.className="metric-bars";
+    const scale=Math.max(home[key],away[key],.01);
+    for(const value of [home[key],away[key]]){
+      const track=document.createElement("span"),fill=document.createElement("i");
+      fill.style.width=`${value/scale*100}%`;track.append(fill);bars.append(track);
+    }
+    middle.append(title,bars);
+    const right=document.createElement("strong");right.className="metric-value";right.textContent=format(away[key]);
+    row.append(left,middle,right);return row;
+  }));
+}
 function render(){
   updatePlayback();
   applyAudience();
@@ -187,6 +233,7 @@ function render(){
   $("event-log").replaceChildren(...events.slice(-6).reverse().map(e=>{const p=document.createElement("div");p.textContent=`${e.minute}:${String(e.second).padStart(2,"0")} · ${e.player.name} · ${eventLabels[e.type.name]}`;return p;}));
   $("prepare").disabled=busy || highlightResume || !selected || !unlocked(selected);
   $("moment-title").textContent=selected?`${shotFor(selected).minute}′ ${labels[shotFor(selected).shot.outcome.name]} · ${pov==="striker"?"射手":"门将"}视角`:"等待关键事件";
+  renderDataBoard(events);
   renderCommentary();
   updateLiveInsight(last);
   renderPitch(last);
@@ -472,7 +519,7 @@ async function loadMatch(){
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
     data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;
-    playbackMode="paused";render();start();warmUpcoming();
+    playbackMode="paused";renderLineups();render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
       ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"
       :"比赛已开球；当前未配置视频服务，关键时刻将展示场景提示词。";

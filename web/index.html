@@ -52,6 +52,13 @@
       <section class="panel recap" hidden><p class="eyebrow">YOUR MATCH NOTES</p><h2>片段回顾</h2><p id="recap">关键事件发生后，这里会自动整理回顾。</p><div id="event-log"></div></section>
     </div>
   </main>
+  <section class="data-board panel" aria-label="比赛数据">
+    <div class="data-board-heading"><div><p class="eyebrow">MATCH DATA</p><h2>比赛数据</h2></div><span id="data-clock">已播放 0′ · 数据随直播更新</span></div>
+    <div class="data-board-grid">
+      <div class="metric-panel"><div class="metric-teams"><strong id="data-home-name">主队</strong><strong id="data-away-name">客队</strong></div><div id="metric-rows"></div><p class="data-note">xG 为依据射门距离、角度和受压状态计算的合成估算值，未经真实比赛数据校准；所有指标仅累计已经播放的事件。</p></div>
+      <div class="lineup-panel"><div class="section-heading"><h3>首发阵容</h3><span>双方 4-3-3 · 合成球员</span></div><div class="lineup-grid"><div><h4 id="lineup-home-name">主队</h4><ol id="lineup-home"></ol></div><div><h4 id="lineup-away-name">客队</h4><ol id="lineup-away"></ol></div></div></div>
+    </div>
+  </section>
   <footer hidden>虚构球队与球员 · 合成比赛数据 · AI 场景演绎</footer>
   <script src="/app.js" type="module"></script>
 </body>
