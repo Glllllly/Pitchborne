@@ -54,6 +54,17 @@ class FullMatchTests(unittest.TestCase):
             self.assertLess(team[7][0], team[9][0])
             self.assertLess(team[2][1], team[5][1])
 
+    def test_pass_receiver_moves_into_the_ball_arrival_point(self):
+        _, events, _ = generate(7)
+        event = next(item for item in events if item["type"]["name"] == "Pass")
+        receiver_id = event["pass"]["recipient"]["id"]
+        start = next(point["location"] for point in event["tracking"]["start"]
+                     if point["player_id"] == receiver_id)
+        end = next(point["location"] for point in event["tracking"]["end"]
+                   if point["player_id"] == receiver_id)
+        self.assertNotEqual(start, end)
+        self.assertEqual(end, event["pass"]["end_location"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,11 +1,12 @@
-import {buildSchedule} from "./match_clock.mjs";
-import {interpolatePose} from "./pitch_motion.mjs";
+import {buildMotionPlan,keyPlayerIds,replayMinutes} from "./match_clock.mjs";
+import {runningPose,playerMotion,coordinatedMotion} from "./pitch_motion.mjs";
 import {summarizeMatch} from "./match_stats.mjs";
+import {combinationAt} from "./pass_combination.mjs";
 const $ = id => document.getElementById(id);
 const labels = {Goal:"进球", "Off T":"射偏", Saved:"扑救"};
 const eventLabels = {Pass:"传球", "Ball Receipt*":"接球", Carry:"推进", Shot:"射门", "Goal Keeper":"扑救", Interception:"拦截", Pressure:"施压", Tackle:"抢断", "Full Time":"全场结束"};
 let data, cursor=0, timer=null, selected=null, pov="striker", prepared=null, busy=false, epoch=0;
-let schedule=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
+let schedule=[],motionPlan=[], playbackMode="idle", highlightResume=false, fallbackTimer=null;
 let pitchAnimation=null, lastPitchEvent=null, pitchBall=null;
 const pitchPositions=new Map();
 let commentaryAudience=null, commentaryCursor=0;
@@ -390,10 +391,13 @@ function pitchState(event){
 }
 function renderPitch(event){
   cancelAnimationFrame(pitchAnimation);
-  const group=$("markers");group.replaceChildren();
+  const group=$("markers");
+  const displayPoint=location=>event.team.id===data.match.away_team.id
+    ?[120-location[0],80-location[1]]:location;
+  const shouldAnimate=!!event&&lastPitchEvent!==event.id;
+  group.replaceChildren();
   $("next").disabled=cursor>=data.events.length || playbackMode==="highlight";
   if(!event){lastPitchEvent=null;pitchBall=null;pitchPositions.clear();$("action-caption").textContent="点击播放或“下一步”，按传球 → 接球 → 推进 → 射门查看。";return;}
-  const shouldAnimate=lastPitchEvent!==event.id;
   lastPitchEvent=event.id;
   const svg=(tag,attrs,text)=>{
     const node=document.createElementNS("http://www.w3.org/2000/svg",tag);
@@ -401,8 +405,17 @@ function renderPitch(event){
     if(text)node.textContent=text;group.append(node);return node;
   };
   const {points,active}=pitchState(event);
-  const displayPoint=location=>event.team.id===data.match.away_team.id
-    ?[120-location[0],80-location[1]]:location;
+  const combination=combinationAt(data.events,cursor-1);
+  for(const id of combination.players)active.add(id);
+  if(combination.passes.length>=2){
+    for(const pass of combination.passes.filter(pass=>pass.id!==event.id)){
+      const from=displayPoint(pass.location),to=displayPoint(pass.pass.end_location);
+      svg("line",{"data-role":"combination-route",x1:from[0],y1:from[1],x2:to[0],y2:to[1],
+        stroke:"#ffe99a","stroke-width":".42","stroke-dasharray":"1.3 .8",opacity:".54"});
+    }
+    svg("text",{x:4,y:7,fill:"#ffe99a","font-size":"2.5","font-weight":"700"},
+      `${combination.passes.length} 脚连续传球 · ${combination.players.size} 人参与`);
+  }
   const end=event.pass?.end_location || event.carry?.end_location || event.shot?.end_location;
   if(end){
     const from=displayPoint(event.location),to=displayPoint(end);
@@ -411,13 +424,17 @@ function renderPitch(event){
     svg("circle",{cx:to[0],cy:to[1],r:"1.5",fill:"none",stroke:"#fff9c2","stroke-width":".25"});
   }
   const movingPlayers=[];
+  const keyPlayers=keyPlayerIds(event);
   points.forEach(point=>{
     const start=displayPoint(point.location);
-    const from=shouldAnimate?(pitchPositions.get(point.player.id)||start):start;
+    const from=pitchPositions.get(point.player.id)||start;
     point={...point,location:from};
     const firstChild=group.children.length;
     const isActive=active.has(point.player.id);
-    if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:2,fill:"none",stroke:point.teammate?"#c4f277":"#f4ae8e","stroke-width":".22",opacity:".85"});
+    const inCombination=combination.passes.length>=2&&combination.players.has(point.player.id);
+    if(isActive)svg("circle",{cx:point.location[0],cy:point.location[1],r:inCombination?2.2:2,
+      fill:"none",stroke:inCombination?"#ffe99a":point.teammate?"#c4f277":"#f4ae8e",
+      "stroke-width":inCombination?".38":".22",opacity:".9"});
     const circle=svg("circle",{"data-player-id":point.player.id,"data-active":isActive,cx:point.location[0],cy:point.location[1],r:1.5,fill:point.teammate?"#c4f277":"#f4ae8e",stroke:"#142219","stroke-width":".25",opacity:isActive?1:.45});
     const title=document.createElementNS(circle.namespaceURI,"title");title.textContent=point.player.name;circle.append(title);
     const role=data.match.players.find(p=>p.player.id===point.player.id)?.role;
@@ -430,7 +447,8 @@ function renderPitch(event){
     const wrapper=svg("g",{"data-moving-player":point.player.id});
     children.forEach(child=>wrapper.append(child));
     const target=event.tracking?.end.find(p=>p.player_id===point.player.id)?.location;
-    movingPlayers.push({wrapper,id:point.player.id,from,start,to:target?displayPoint(target):start});
+    movingPlayers.push({wrapper,id:point.player.id,from,start,to:target?displayPoint(target):start,
+      key:keyPlayers.has(point.player.id)});
   });
   const ball=displayPoint(end||event.location);
   const football=svg("g",{"data-role":"football",transform:`translate(${ball[0]} ${ball[1]})`});
@@ -439,17 +457,24 @@ function renderPitch(event){
   const patch=document.createElementNS(football.namespaceURI,"path");patch.setAttribute("d","M0 -.55 .52 -.17 .32 .45 -.32 .45 -.52 -.17Z");patch.setAttribute("fill","#162019");football.append(patch);
   if(event.tracking){
     const began=performance.now();
-    const duration=shouldAnimate?Math.max(100,(schedule[cursor-1]||200)/Number($("speed").value)*.94):0;
+    const plan=motionPlan[cursor-1]||{durationMs:900,setupShare:.18};
+    const nominalDuration=plan.durationMs;
+    const duration=shouldAnimate?Math.max(100,nominalDuration/Number($("speed").value)*.97):0;
     const ballStart=displayPoint(event.tracking.ball_start),ballEnd=displayPoint(event.tracking.ball_end);
-    const ballFrom=shouldAnimate?(pitchBall||ballStart):ballStart;
+    const ballFrom=pitchBall||ballStart;
+    const setupShare=plan.setupShare;
+    const flightShare=event.type.name==="Pass"?.55:event.type.name==="Shot"?.45:.9;
+    const arrivalAt=setupShare+(1-setupShare)*flightShare;
     function animate(now){
       const t=duration?Math.min((now-began)/duration,1):1;
-      movingPlayers.forEach(({wrapper,id,from,start,to})=>{
-        const current=interpolatePose(from,start,to,t);
+      movingPlayers.forEach(({wrapper,id,from,start,to,key})=>{
+        const current=!shouldAnimate?from:key
+          ?runningPose(from,start,to,t,setupShare)
+          :playerMotion(from,to,t,nominalDuration,3.8);
         pitchPositions.set(id,current);
         wrapper.setAttribute("transform",`translate(${current[0]-from[0]} ${current[1]-from[1]})`);
       });
-      pitchBall=interpolatePose(ballFrom,ballStart,ballEnd,t);
+      pitchBall=coordinatedMotion(ballFrom,ballStart,ballEnd,t,setupShare,arrivalAt);
       football.setAttribute("transform",`translate(${pitchBall[0]} ${pitchBall[1]})`);
       if(t<1)pitchAnimation=requestAnimationFrame(animate);
     }
@@ -617,7 +642,8 @@ async function loadMatch(){
   try{
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
-    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;aiCommentaryCache.clear();
+    data=body;motionPlan=buildMotionPlan(body.events);schedule=motionPlan.map(item=>item.durationMs);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;aiCommentaryCache.clear();
+    $("speed").options[0].textContent=`自然节奏 · 约 ${replayMinutes(body.events)} 分钟`;
     playbackMode="paused";renderLineups();render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
       ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"

@@ -31,7 +31,7 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 11
+    match["generator_version"] = 12
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"
@@ -78,9 +78,12 @@ def generate(seed):
             if pid == active:
                 point = list(event["location"])
             elif pid == receiver:
-                point = list(target[:2])
+                point = [clamp(target[0] - 2.2, 1, 119),
+                         clamp(target[1] + (1.4 if shirt % 2 else -1.4), 1, 79)]
             end = list(point)
             if pid == active and event["type"]["name"] == "Carry":
+                end = list(target[:2])
+            elif pid == receiver:
                 end = list(target[:2])
             elif pid != receiver and pid != active and entry["position"] != "GK":
                 end = [clamp(point[0] + (.55 if same else -.35), 1, 119),
