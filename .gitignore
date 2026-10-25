@@ -6,3 +6,4 @@ data/matches/
 node_modules/
 .env.*
 !.env.example
+requests/
