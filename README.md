@@ -6,12 +6,12 @@
 
 ### Three moments, three ways to be there
 
-Click a frame to watch a sample video:
+These short previews play directly in the README. Click one for the full-resolution MP4:
 
 | Score the goal | Make the save | Have your shot saved |
 | :---: | :---: | :---: |
-| [![Striker POV: goal](docs/screenshots/goal-preview.jpg)](asserts/goal.mp4) | [![Goalkeeper POV: save](docs/screenshots/save-preview.jpg)](asserts/save.mp4) | [![Striker POV: saved shot](docs/screenshots/save2-preview.jpg)](asserts/save2.mp4) |
-| [Watch the goal POV](asserts/goal.mp4) | [Watch the goalkeeper POV](asserts/save.mp4) | [Watch the saved-shot POV](asserts/save2.mp4) |
+| [![Striker POV: goal](docs/screenshots/goal-preview.gif)](asserts/goal.mp4) | [![Goalkeeper POV: save](docs/screenshots/save-preview.gif)](asserts/save.mp4) | [![Striker POV: saved shot](docs/screenshots/save2-preview.gif)](asserts/save2.mp4) |
+| [Full video: goal](asserts/goal.mp4) | [Full video: goalkeeper save](asserts/save.mp4) | [Full video: saved shot](asserts/save2.mp4) |
 
 These are example generated clips. During a live run, Pitchborne requests new clips from the selected match events rather than playing these three files.
 
