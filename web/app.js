@@ -162,19 +162,26 @@ function renderCommentary(){
 }
 function renderLineups(){
   const positionNames={GK:"门将",LB:"左后卫",CB:"中后卫",RB:"右后卫",DM:"后腰",CM:"中场",LW:"左边锋",ST:"前锋",RW:"右边锋"};
+  const spots={1:[50,8],2:[14,20],3:[38,20],4:[62,20],5:[86,20],
+    6:[50,31],7:[30,36],8:[70,36],9:[18,44],10:[50,44],11:[82,44]};
+  const field=$("lineup-players");field.replaceChildren();
   for(const side of ["home","away"]){
     const team=data.match[`${side}_team`];
     $(side==="home"?"lineup-home-name":"lineup-away-name").textContent=team.name;
     $(side==="home"?"data-home-name":"data-away-name").textContent=team.name;
     const players=data.match.players.filter(player=>player.team_id===team.id)
       .sort((a,b)=>a.shirt_number-b.shirt_number);
-    $(side==="home"?"lineup-home":"lineup-away").replaceChildren(...players.map(player=>{
-      const row=document.createElement("li");
-      const number=document.createElement("span");number.className="lineup-number";number.textContent=player.shirt_number;
-      const name=document.createElement("span");name.className="lineup-name";name.textContent=player.player.name;
-      const position=document.createElement("span");position.className="lineup-position";position.textContent=positionNames[player.position]||player.position;
-      row.append(number,name,position);return row;
-    }));
+    for(const player of players){
+      const [x,y]=spots[player.shirt_number];
+      const node=document.createElement("div");node.className=`lineup-player ${side}`;
+      node.style.left=`${side==="home"?100-x:x}%`;
+      node.style.top=`${side==="home"?100-y:y}%`;
+      node.title=`${player.player.name} · ${positionNames[player.position]||player.position}`;
+      const number=document.createElement("span");number.className="lineup-badge";number.textContent=player.shirt_number;
+      const name=document.createElement("span");name.className="lineup-player-name";name.textContent=player.player.name;
+      const position=document.createElement("span");position.className="lineup-player-role";position.textContent=positionNames[player.position]||player.position;
+      node.append(number,name,position);field.append(node);
+    }
   }
 }
 function renderDataBoard(events){

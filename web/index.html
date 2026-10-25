@@ -56,7 +56,11 @@
     <div class="data-board-heading"><div><p class="eyebrow">MATCH DATA</p><h2>比赛数据</h2></div><span id="data-clock">已播放 0′ · 数据随直播更新</span></div>
     <div class="data-board-grid">
       <div class="metric-panel"><div class="metric-teams"><strong id="data-home-name">主队</strong><strong id="data-away-name">客队</strong></div><div id="metric-rows"></div><p class="data-note">xG 为依据射门距离、角度和受压状态计算的合成估算值，未经真实比赛数据校准；所有指标仅累计已经播放的事件。</p></div>
-      <div class="lineup-panel"><div class="section-heading"><h3>首发阵容</h3><span>双方 4-3-3 · 合成球员</span></div><div class="lineup-grid"><div><h4 id="lineup-home-name">主队</h4><ol id="lineup-home"></ol></div><div><h4 id="lineup-away-name">客队</h4><ol id="lineup-away"></ol></div></div></div>
+      <div class="lineup-panel"><div class="section-heading"><h3>首发阵容</h3><span>双方 4-3-3 · 合成球员</span></div><div class="lineup-pitch" aria-label="双方首发阵容站位图">
+        <svg class="lineup-lines" viewBox="0 0 100 160" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="3" width="94" height="154"/><path d="M3 80H97 M30 3V17H70V3 M40 3V9H60V3 M30 157V143H70V157 M40 157V151H60V157"/><circle cx="50" cy="80" r="10"/><circle cx="50" cy="14" r="1"/><circle cx="50" cy="146" r="1"/></svg>
+        <div class="lineup-team-tag away-tag" id="lineup-away-name">客队</div><div class="lineup-team-tag home-tag" id="lineup-home-name">主队</div>
+        <div id="lineup-players"></div>
+      </div><p class="lineup-note">号码与位置为合成首发阵容；未模拟换人和球员评分。</p></div>
     </div>
   </section>
   <footer hidden>虚构球队与球员 · 合成比赛数据 · AI 场景演绎</footer>
