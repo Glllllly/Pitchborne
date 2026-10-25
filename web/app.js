@@ -9,6 +9,17 @@ let pitchAnimation=null, lastPitchEvent=null, pitchBall=null;
 const pitchPositions=new Map();
 let commentaryAudience=null, commentaryCursor=0;
 const prefetched=new Map();
+const viewedClips=new Set();
+const videoWaiters=[];
+let activeVideoJobs=0;
+function reserveVideoSlot(){
+  if(activeVideoJobs<2){activeVideoJobs++;return Promise.resolve();}
+  return new Promise(resolve=>videoWaiters.push(resolve));
+}
+function releaseVideoSlot(){
+  const next=videoWaiters.shift();
+  if(next)next();else activeVideoJobs--;
+}
 let insightController=null, insightKey=null;
 const insightCache=new Map();
 async function updateLiveInsight(event){
@@ -110,7 +121,7 @@ function tick(){
   const event=data.events[cursor++];
   if(data.clips.some(c=>c.event_ids[0]===event.id)){selected=null;clearResult();}
   const clip=data.clips.find(c=>c.trigger_event_id===event.id);
-  if(clip){selected=clip;clearResult();applyAudience();}
+  if(clip){selected=clip;clearResult();applyAudience();warmHighlight(clip);warmUpcoming();}
   render();
   refreshReadyHighlight();
   if(cursor===data.events.length){stop();playbackMode="finished";updatePlayback();return;}
@@ -322,8 +333,9 @@ function warmHighlight(clip,retry=false){
   const key=JSON.stringify(profile);
   const cached=prefetched.get(key);
   if(cached && !(retry && cached.status==="failed"))return cached;
-  const entry={key,profile,status:"submitting",artifacts:null,job_id:null,error:null};
+  const entry={key,profile,status:"waiting",artifacts:null,job_id:null,error:null,ownsSlot:false};
   entry.submitted=(async()=>{
+    await reserveVideoSlot();entry.ownsSlot=true;entry.status="submitting";
     const response=await fetch("/api/highlights/prepare",{
       method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)
     });
@@ -348,6 +360,7 @@ function warmHighlight(clip,retry=false){
       if(["queued","running"].includes(entry.status))throw Error("视频生成等待超时");
       if(entry.status==="failed")entry.error=entry.artifacts["video_job.json"].error||"视频生成失败";
     }catch(error){entry.status="failed";entry.error=error.message||"视频生成失败";}
+    finally{if(entry.ownsSlot){entry.ownsSlot=false;releaseVideoSlot();}}
     refreshReadyHighlight();
     return entry;
   })();
@@ -357,7 +370,7 @@ function warmHighlight(clip,retry=false){
 function refreshReadyHighlight(){
   if(!data)return;
   const ready=[...data.clips].reverse().find(clip=>
-    seen().some(event=>event.id===clip.event_ids.at(-1)) &&
+    !viewedClips.has(clip.id) && seen().some(event=>event.id===clip.event_ids.at(-1)) &&
     prefetched.get(JSON.stringify(highlightProfile(clip)))?.artifacts?.["video_job.json"]?.media_url);
   const button=$("watch-ready");
   button.hidden=!ready;
@@ -373,14 +386,15 @@ function refreshReadyHighlight(){
 }
 function warmUpcoming(){
   if(!data)return;
+  let upcoming=0;
   for(const clip of data.clips){
     const trigger=data.events.findIndex(event=>event.id===clip.trigger_event_id);
-    if(trigger>=cursor || selected?.id===clip.id && playbackMode==="highlight")warmHighlight(clip);
+    if(trigger>=cursor && upcoming++<2)warmHighlight(clip);
   }
 }
 $("next").onclick=()=>{stop();playbackMode="paused";tick();updatePlayback();};
 $("play").onclick=()=>{if(playbackMode==="playing"){stop();playbackMode="paused";updatePlayback();}else start();};
-$("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;lastPitchEvent=null;pitchBall=null;pitchPositions.clear();clearResult();render();start();};
+$("reset").onclick=()=>{stop();playbackMode="paused";cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();clearResult();render();start();warmUpcoming();};
 $("speed").onchange=()=>{if(playbackMode==="playing"){stop();scheduleNext();}};
 $("mode").onchange=()=>render();
 $("audience").onchange=()=>{
@@ -408,7 +422,8 @@ async function showVideo(job,version,automatic){
   const video=$("highlight-video");video.src=job.media_url;video.hidden=false;$("pov-stage").hidden=false;
   $("video-status").textContent="第一视角视频已就绪。";
   if(highlightResume){
-    video.onended=()=>resumeMatch(version);
+    const watched=selected?.id;
+    video.onended=()=>{if(watched)viewedClips.add(watched);refreshReadyHighlight();resumeMatch(version);};
     video.onerror=()=>{$("video-status").textContent="视频播放失败，正在继续比赛。";resumeAfterDelay(version);};
     video.onplay=()=>{clearTimeout(fallbackTimer);fallbackTimer=null;};
   }
@@ -456,7 +471,7 @@ async function loadMatch(){
   try{
     const response=await fetch("/api/match");
     const body=await response.json();if(!response.ok)throw Error(body.error||"无法读取比赛数据");
-    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;
+    data=body;schedule=buildSchedule(body.events);cursor=0;selected=null;viewedClips.clear();lastPitchEvent=null;pitchBall=null;pitchPositions.clear();commentaryAudience=null;commentaryCursor=0;
     playbackMode="paused";render();start();warmUpcoming();
     $("video-status").textContent=body.video_available
       ?"比赛已开球，关键时刻的第一视角视频正在后台生成。"

@@ -30,7 +30,7 @@ def generate(seed):
     match = copy.deepcopy(json.loads(SAMPLE.read_text(encoding="utf-8")))
     match["match_id"] = 1_000_000_000 + seed
     match["seed"] = seed
-    match["generator_version"] = 5
+    match["generator_version"] = 6
     match["coverage"] = "Synthetic on-ball event stream across 90 simulated minutes; not continuous optical tracking."
     match["provenance"] = "Generated from this repository's seeded fictional simulator; no real match records copied."
     match["coordinate_system"]["attacking_direction"] = "positive_x for all supplied clips"
@@ -214,13 +214,12 @@ def generate(seed):
     possession += 1
     emit("Full Time", 5400, teams[0], by_team[teams[0]["id"]][0]["player"], [60, 40])
     clips = []
-    for result, target_minute in (("Goal", 18), ("Saved", 48), ("Off T", 75)):
-        choices = [c for c in candidates if c["result"] == result]
-        chosen = min(choices, key=lambda c: abs(c["shot"]["minute"] - target_minute))
+    for chosen in candidates:
+        result = chosen["result"]
         chain, shot = chosen["chain"], chosen["shot"]
         keeper = next(p["player"] for p in shot["shot"]["freeze_frame"] if p["position"]["name"] == "Goalkeeper")
         clips.append({
-            "id": f"seed-{seed}-{result.lower().replace(' ', '-')}",
+            "id": f"seed-{seed}-shot-{shot['index']}",
             "match_id": match["match_id"], "synthetic": True,
             "event_ids": [e["id"] for e in chain], "trigger_event_id": shot["id"],
             "score_before": chosen["before"], "score_after": chosen["after"],
@@ -230,7 +229,6 @@ def generate(seed):
                                        "must_preserve": ["shot outcome", "player identities", "selected first-person viewpoint"],
                                        "creative_details": ["head movement", "crowd ambience", "lighting"]},
         })
-    clips.sort(key=lambda c: next(e["index"] for e in events if e["id"] == c["trigger_event_id"]))
     validate(match, events, clips)
     return match, events, clips
 

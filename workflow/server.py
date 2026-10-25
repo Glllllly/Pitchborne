@@ -31,7 +31,7 @@ def match_data():
     folder = ROOT / "data" / "matches" / f"seed-{seed}"
     with MATCH_LOCK:
         if (not all((folder / name).exists() for name in ("match.json", "events.json", "clips.json", "commentary.json"))
-                or read(folder / "match.json").get("generator_version") != 5):
+                or read(folder / "match.json").get("generator_version") != 6):
             save_match(seed, folder)
     return folder
 
