@@ -1,5 +1,7 @@
 # Pitchborne ⚽
 
+![Pitchborne cover: striker and goalkeeper first-person views of the same shot](docs/pitchborne-cover.png)
+
 ### What if a live football highlight let you step onto the pitch?
 
 **Watch the match. Read the game. Feel the moment.** Pitchborne plays a fictional 90-minute match as a live 11-v-11 animation with running commentary. When a shot is on target, it can turn the event into a short AI-generated **striker or goalkeeper POV**. The match keeps moving while the video is made.
